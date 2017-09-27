@@ -3,16 +3,42 @@
     name:
       type: string
     description:
-      type: string 
+      type: string
     kill_chain_phases:
       type: array
       items:
         $ref: "#/definitions/KillChainPhase"
-    x_unfetter_sophistication_level:
-      type: 
-      - number
-      - 'null'
-    created: 
+    x_mitre_system_requirements:
+      type: string
+    x_mitre_platforms:
+      type: array
+      items:
+        type: string
+    x_mitre_contributors:
+      type: array
+      items:
+        type: string
+    x_mitre_data_sources:
+      type: array
+      items:
+        type: string
+    x_mitre_permissions_required:
+      type: array
+      items:
+        type: string
+    x_mitre_effective_permissions:
+      type: array
+      items:
+        type: string
+    x_mitre_detection:
+      type: string
+    x_mitre_remote_support:
+      type: boolean
+    x_mitre_defense_bypassed:
+      type: string
+    x_mitre_network_requirements:
+      type: boolean
+    created:
       type: string
       format: date-time
     created_by_ref:

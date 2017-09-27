@@ -3,25 +3,49 @@
   - properties:
       data:
         type: object
-        properties: 
+        properties:
           type:
             type: string
-            enum: ['attack-pattern']      
+            enum: ['attack-pattern']
           attributes:
             type: object
             properties:
               name:
-                type: string 
+                type: string
               description:
                 type: string
               kill_chain_phases:
                 type: array
                 items:
                   $ref: "#/definitions/KillChainPhase"
-              x_unfetter_sophistication_level:
-                type: number
+              x_mitre_system_requirements:
+                type: string
+              x_mitre_platforms:
+                type: array
+                items:
+                  type: string
+              x_mitre_data_sources:
+                type: array
+                items:
+                  type: string
+              x_mitre_permissions_required:
+                type: array
+                items:
+                  type: string
+              x_mitre_effective_permissions:
+                type: array
+                items:
+                  type: string
+              x_mitre_detection:
+                type: string
+              x_mitre_remote_support:
+                type: boolean
+              x_mitre_defense_bypassed:
+                type: string
+              x_mitre_network_requirements:
+                type: boolean
               object_marking_refs:
                 type: array
                 items:
                   type: string
-                  default: "marking-definition-id"    
+                  default: "marking-definition-id"
