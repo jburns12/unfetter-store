@@ -12,25 +12,8 @@ const AttackPatternSchema = {
     type: String
   },
   kill_chain_phases: [stixCommons['kill_chain_phases']],
-  x_mitre_system_requirements: {
-    type: String
-  },
-  x_mitre_platforms: [String],
-  x_mitre_contributors: [String],
-  x_mitre_data_sources: [String],
-  x_mitre_permissions_required: [String],
-  x_mitre_effective_permissions: [String],
-  x_mitre_detection: {
-    type: String
-  },
-  x_mitre_remote_support: {
-    type: Boolean
-  },
-  x_mitre_defense_bypassed: {
-    type: String
-  },
-  x_mitre_network_requirements: {
-    type: Boolean
+  x_unfetter_sophistication_level: {
+      type: Number
   },
   type: {
     type: String,

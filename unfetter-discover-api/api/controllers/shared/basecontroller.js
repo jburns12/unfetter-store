@@ -10,7 +10,7 @@ const apiRoot = 'https://localhost/api';
 module.exports = class BaseController {
     constructor(type) {
         this.type = type;
-        this.model = modelFactory.getModel(type);      
+        this.model = modelFactory.getModel(type);
     }
 
     getEnhancedData(result, swaggerParams) {
@@ -36,10 +36,10 @@ module.exports = class BaseController {
                     let temp = res.stix;
                     if (res.extendedProperties !== undefined) {
                         temp = {...temp, ...res.extendedProperties};
-                    } 
+                    }
                     if (res.metaProperties !== undefined) {
                         temp = { ...temp, ...res.metaProperties };
-                    } 
+                    }
                     return temp;
                 });
 
@@ -125,7 +125,7 @@ module.exports = class BaseController {
 
                     const requestedUrl = apiRoot + req.originalUrl;
 
-                    let data = getEnhancedData(result, req.swagger.params);                    
+                    let data = getEnhancedData(result, req.swagger.params);
 
                     const convertedResult = jsonApiConverter.convertJsonToJsonApi(data, type, requestedUrl);
                     return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
@@ -146,7 +146,7 @@ module.exports = class BaseController {
                 const requestedUrl = apiRoot + req.originalUrl;
 
                 let data = getEnhancedData(result, req.swagger.params);
-                
+
                 const convertedResult = jsonApiConverter.convertJsonToJsonApi(data[0], type, requestedUrl);
                 return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
             }
@@ -231,7 +231,7 @@ module.exports = class BaseController {
                 });
             } else {
                 return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'malformed request' }] });
-            }            
+            }
         };
     }
 
@@ -263,7 +263,11 @@ module.exports = class BaseController {
                             resultObj.extendedProperties[key] = incomingObj[key];
                         }
                     }
-
+                    for (const oldKey in resultObj.extendedProperties){
+                        if (!(oldKey in incomingObj)){
+                            delete resultObj.extendedProperties[oldKey];
+                        }
+                    }
                     // then validate
                     // guard
                     resultObj.stix.modified = new Date();
@@ -295,7 +299,7 @@ module.exports = class BaseController {
                 });
             } else {
                 return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'malformed request' }] });
-            }  
+            }
         };
     }
 
@@ -324,5 +328,5 @@ module.exports = class BaseController {
                 res.status(500).json({ errors: [{ status: 500, source: '', title: 'Error', code: '', detail: 'An unknown error has occurred.' }] });
             });
         };
-    } 
+    }
 }
