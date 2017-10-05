@@ -8,28 +8,9 @@
       type: array
       items:
         type: string
-    first_seen:
-      type: string
-      format: date-time
-    last_seen:
-      type: string
-      format: date-time
-    goals:
-      type: array
-      items:
-        type: string
-    primary_motivation:
-      type: string
-
-    secondary_motivations:
-      type: array
-      items:
-        type: string
-    resource_level:
-      type: string
 
 
-    created: 
+    created:
       type: string
       format: date-time
     created_by_ref:

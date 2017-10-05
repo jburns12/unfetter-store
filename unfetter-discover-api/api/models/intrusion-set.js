@@ -12,22 +12,6 @@ const StixSchema = {
         type: String
     },
     aliases: [String],
-    first_seen: {
-        type: Date,
-        default: Date.now
-    },
-    last_seen: {
-        type: Date,
-        default: Date.now
-    },
-    goals: [String],
-    resource_level: {
-        type: String
-    },
-    primary_motivation: {
-        type: String
-    },
-    secondary_motivations: [String],
     type: {
         type: String,
         enum: ['intrusion-set']
