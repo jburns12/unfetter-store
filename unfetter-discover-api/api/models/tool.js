@@ -12,8 +12,7 @@ const StixSchema = {
     description: {
         type: String
     },
-    kill_chain_phases: [stixCommons['kill_chain_phases']],
-    tool_version: String,
+    x_mitre_aliases: [String],
     type: {
         type: String,
         enum: ['tool'],

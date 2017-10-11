@@ -3,12 +3,8 @@
     name:
       type: string
     description:
-      type: string
-    kill_chain_phases:
-      type: array
-      items:
-        $ref: "#/definitions/KillChainPhase"      
-    created: 
+      type: string  
+    created:
       type: string
       format: date-time
     created_by_ref:
@@ -17,9 +13,10 @@
     modified:
       type: string
       format: date-time
-    revoked:
-      type: boolean
-      default: false
+    x_mitre_aliases:
+      type: array
+      items:
+        type: string
     labels:
       type: array
       items:

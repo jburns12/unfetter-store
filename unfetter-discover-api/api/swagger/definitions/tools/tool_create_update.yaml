@@ -3,20 +3,18 @@
     - properties:
        data:
           type: object
-          properties:        
+          properties:
             type:
               type: string
               enum: ['tool']
             attributes:
               type: object
-              properties:            
+              properties:
                 name:
-                  type: string 
+                  type: string
                 description:
-                  type: string  
-                kill_chain_phases:
+                  type: string
+                x_mitre_aliases:
                   type: array
                   items:
-                    $ref: "#/definitions/KillChainPhase"
-                tool_version:
-                  type: string
+                    type: string
