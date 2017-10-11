@@ -104,6 +104,15 @@ module.exports = class BaseController {
         const type = this.type;
         const model = this.model;
         const getEnhancedData = this.getEnhancedData;
+        return this.getCb((err, convertedResult, requestedUrl, req, res) => {
+            return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
+        });
+    }
+
+    getCb(callback) {
+        const type = this.type;
+        const model = this.model;
+        const getEnhancedData = this.getEnhancedData;
         return (req, res) => {
             res.header('Content-Type', 'application/vnd.api+json');
 
@@ -113,10 +122,11 @@ module.exports = class BaseController {
             }
 
             model
-                .find(Object.assign({'stix.type': type}, query.filter))
+                .find(Object.assign({ 'stix.type': type }, query.filter))
                 .sort(query.sort)
                 .limit(query.limit)
                 .skip(query.skip)
+                .select(query.project)
                 .exec((err, result) => {
 
                     if (err) {
@@ -128,7 +138,8 @@ module.exports = class BaseController {
                     let data = getEnhancedData(result, req.swagger.params);
 
                     const convertedResult = jsonApiConverter.convertJsonToJsonApi(data, type, requestedUrl);
-                    return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
+                    // return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
+                    callback(err, convertedResult, requestedUrl, req, res);
                 });
         }
     }
