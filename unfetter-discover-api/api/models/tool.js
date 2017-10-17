@@ -12,7 +12,6 @@ const StixSchema = {
     description: {
         type: String
     },
-    x_mitre_aliases: [String],
     type: {
         type: String,
         enum: ['tool'],

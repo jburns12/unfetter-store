@@ -4,16 +4,16 @@ info:
   title: Unfetter Ctf Ingest App
 # during dev, should point to your local machine
 host: localhost:10010
-# basePath prefixes all resource paths 
+# basePath prefixes all resource paths
 basePath: /
-# 
+#
 schemes:
   # tip: remove http to make production-grade
   - http
   - https
-consumes: 
+consumes:
   - "application/json"
-produces: 
+produces:
   - "application/json"
 paths:
   /hello:
@@ -40,38 +40,38 @@ paths:
             # a pointer to a definition
             $ref: "#/definitions/HelloWorldResponse"
         # responses may fall through to errors
-        default: 
+        default:
           description: "Error"
-          schema: 
+          schema:
             $ref: "#/definitions/ErrorResponse"
 
   /upload:
     x-swagger-router-controller: upload
     post:
         operationId: upload
-        tags: 
+        tags:
           - "CTF"
-        description: > 
+        description: >
           Create a new instance of the model and persist it into the data source.
-        produces: 
+        produces:
           - "application/json"
-        consumes: 
+        consumes:
           - "application/json"
-        parameters: 
+        parameters:
           - name: "data"
             in: "body"
             description: "Model instance data"
             required: true
-            schema: 
+            schema:
               $ref: "#/definitions/UploadRequest"
-        responses: 
-          "201": 
+        responses:
+          "201":
             description: "Created"
-            schema: 
+            schema:
               $ref: "#/definitions/SuccessResponse"
-          default: 
+          default:
             description: "Error"
-            schema: 
+            schema:
               $ref: "#/definitions/ErrorResponse"
 definitions:
   HelloWorldResponse:
@@ -100,5 +100,5 @@ definitions:
         type: string
   UploadRequest:
     properties:
-      body: 
+      body:
         type: string
