@@ -5,7 +5,7 @@ get:
   - STIX-Multiple
   description: Find all instances of the model matched by filter from the data source.
   operationId: get
-  produces: 
+  produces:
   - application/vnd.api+json
   parameters:
     - name: filter
@@ -36,6 +36,10 @@ get:
       in: query
       type: boolean
       description: boolean to include extended meta properties
+    - name: previousversions
+      in: query
+      type: boolean
+      description: boolean to include previous versions
     - name: project
       in: query
       description: 'Ex: { "name": 1 } or { "name": 0}'

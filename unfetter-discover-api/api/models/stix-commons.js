@@ -52,7 +52,8 @@ stixCommons['mongoRoot'] = {
     _id: String,
     organization: String,
     extendedProperties: Object,
-    metaProperties: Object
+    metaProperties: Object,
+    previousVersions: { type: Array, default: void 0},
 };
 
 // TODO delete if not used
@@ -82,13 +83,13 @@ stixCommons['baseStix'] = {
 };
 
 stixCommons['makeSchema'] = childSchema => {
-    let schema = { 
+    let schema = {
         ...stixCommons['mongoRoot'],
         stix: {
-            ...stixCommons['baseStix'], 
+            ...stixCommons['baseStix'],
             ...childSchema
         }
-    }; 
+    };
     return mongoose.Schema(schema);
 };
 

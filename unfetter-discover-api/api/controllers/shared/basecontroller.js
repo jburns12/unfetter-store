@@ -16,20 +16,44 @@ module.exports = class BaseController {
     getEnhancedData(result, swaggerParams) {
         let data;
         // No params present
-        if (swaggerParams.extendedproperties === undefined && swaggerParams.metaproperties === undefined) {
+        if (swaggerParams.extendedproperties === undefined && swaggerParams.metaproperties === undefined && swaggerParams.previousversions === undefined) {
             return result
                 .map(res => res.toObject())
                 .map(res => res.stix);
         }
 
-        // no extended or meta properties
-        if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false && (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false)) {
+        // no extended properties or meta properties or previous versions
+        if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false &&
+            (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)) {
             data = result
                 .map(res => res.toObject())
                 .map(res => res.stix);
 
-        // both extended and meta properties
-        } else if ((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined || swaggerParams.extendedproperties.value === true) && swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true){
+        // extended and meta properties and previous versions
+        } else if ((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined || swaggerParams.extendedproperties.value === true) &&
+            swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true &&
+            swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value !== undefined && swaggerParams.previousversions.value === true){
+            data = result
+                .map(res => res.toObject())
+                .map(res => {
+                    let temp = res.stix;
+                    if (res.extendedProperties !== undefined) {
+                        temp = {...temp, ...res.extendedProperties};
+                    }
+                    if (res.metaProperties !== undefined) {
+                        temp = { ...temp, ...res.metaProperties };
+                    }
+                    if (res.previousVersions !== undefined) {
+                        temp = { ...temp, ...res.previousVersions };
+                    }
+                    return temp;
+                });
+
+        // extended and meta properties
+        } else if ((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined || swaggerParams.extendedproperties.value === true) &&
+            swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)){
             data = result
                 .map(res => res.toObject())
                 .map(res => {
@@ -44,7 +68,9 @@ module.exports = class BaseController {
                 });
 
         // Exteded properties only
-        } else if (((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined) || swaggerParams.extendedproperties.value === true) && (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false)) {
+        } else if (((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined) || swaggerParams.extendedproperties.value === true) &&
+            (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)) {
             data = result
                 .map(res => res.toObject())
                 .map(res => {
@@ -55,8 +81,28 @@ module.exports = class BaseController {
                     }
                 });
 
+        // Exteded properties and previous versions
+        } else if (((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined) || swaggerParams.extendedproperties.value === true) &&
+            (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value !== undefined && swaggerParams.previousversions.value === true)) {
+            data = result
+                .map(res => res.toObject())
+                .map(res => {
+                    let temp = res.stix;
+                    if (res.extendedProperties !== undefined) {
+                        temp = { ...temp, ...res.extendedProperties };
+                    }
+                    if (res.previousVersions != undefined) {
+                      console.log(res.previousVersions);
+                        temp = { ...temp, ...res.previousVersions };
+                    }
+                    return temp;
+                });
+
         // Meta properties only
-        } else if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false && swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true) {
+      } else if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false &&
+            (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true) &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)) {
             data = result
                 .map(res => res.toObject())
                 .map(res => {
@@ -66,6 +112,37 @@ module.exports = class BaseController {
                         return res.stix;
                     }
                 });
+
+          // Meta properties and previous versions
+        } else if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false &&
+            (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true) &&
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value !== undefined && swaggerParams.previousversions.value === true)) {
+              data = result
+                  .map(res => res.toObject())
+                  .map(res => {
+                      let temp = res.stix;
+                      if (res.metaProperties !== undefined) {
+                          temp = { ...temp, ...res.metaProperties };
+                      }
+                      if (res.previousVersions != undefined) {
+                          temp = { ...temp, ...res.previousVersions };
+                      }
+                      return temp;
+                  });
+
+            // Previous versions only
+          } else if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false &&
+              (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
+              (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value !== undefined && swaggerParams.previousversions.value === true)) {
+                data = result
+                    .map(res => res.toObject())
+                    .map(res => {
+                        if (res.previousVersions !== undefined) {
+                            return { ...res.stix, ...res.previousVersions};
+                        } else {
+                            return res.stix;
+                        }
+                    });
 
         // Delete this if this function works!
         } else {
@@ -159,6 +236,7 @@ module.exports = class BaseController {
                 let data = getEnhancedData(result, req.swagger.params);
 
                 const convertedResult = jsonApiConverter.convertJsonToJsonApi(data[0], type, requestedUrl);
+                console.log(convertedResult);
                 return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
             }
 
@@ -270,6 +348,12 @@ module.exports = class BaseController {
                     const resultObj = result.toObject();
                     const incomingObj = req.swagger.params.data ? req.swagger.params.data.value.data.attributes : {};
                     const has = Object.prototype.hasOwnProperty;
+                    if (resultObj.previousVersions === undefined) {
+                        resultObj.previousVersions = [];
+                    }
+                    const currObj = Object.assign({}, resultObj.stix, resultObj.extendedProperties);
+                    resultObj.previousVersions.push(currObj);
+
                     for (const key in incomingObj) {
                         if (key === 'metaProperties') {
                             for (const metaKey in incomingObj.metaProperties) {
@@ -292,6 +376,7 @@ module.exports = class BaseController {
                             delete resultObj.extendedProperties[oldKey];
                         }
                     }
+
                     // then validate
                     // guard
                     resultObj.stix.modified = new Date();
@@ -315,6 +400,7 @@ module.exports = class BaseController {
                         let resObj = resultUpdate.toObject();
                         const requestedUrl = apiRoot + req.originalUrl;
                         const convertedResult = jsonApiConverter.convertJsonToJsonApi(resObj.extendedProperties !== undefined ? { ...resObj.stix, ...resObj.extendedProperties } : resObj.stix, type, requestedUrl);
+                        console.log(currObj);
                         return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
                     }
 

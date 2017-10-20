@@ -137,6 +137,9 @@ function run(stixObjects = []) {
                     if (enhancedProps.metaProperties !== undefined) {
                         stixToEnhance.metaProperties = enhancedProps.metaProperties;
                     }
+                    if (enhancedProps.previousVersions !== undefined) {
+                        stixToEnhance.previousVersions = enhancedProps.previousVersions;
+                    }
                 } else {
                     // TODO attempt to upload to database if not in processed STIX document
                     console.log('STIX property enhancement failed - Unable to find matching stix for: ', enhancedProps._id);

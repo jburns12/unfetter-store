@@ -5,7 +5,7 @@ get:
   - STIX-Intrusion Set
   description: Find a model instance by {{id}} from the data source.
   operationId: getById
-  produces: 
+  produces:
   - application/vnd.api+json
   parameters:
     - name: id
@@ -21,6 +21,10 @@ get:
       in: query
       type: boolean
       description: boolean to include extended meta properties
+    - name: previousversions
+      in: query
+      type: boolean
+      description: boolean to include previous versions
   responses:
     "200":
       description: Success
@@ -40,7 +44,7 @@ patch:
   - STIX-Intrusion Set
   description: Patch attributes for a model instance and persist it into the data source.
   operationId: update
-  produces: 
+  produces:
   - application/vnd.api+json
   consumes:
   - application/json
@@ -75,7 +79,7 @@ delete:
   - STIX-Intrusion Set
   description: Delete a model instance by {{id}} from the data source.
   operationId: deleteById
-  produces: 
+  produces:
   - application/vnd.api+json
   parameters:
     - name: id
