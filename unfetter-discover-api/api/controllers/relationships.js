@@ -33,7 +33,8 @@ module.exports = {
                             stixSchemaless.findById({ _id: sourceId }, (err, result) => {
                                 const resultObj = result.toObject();
                                 const metaProperty = {};
-                                metaProperty.modified = new Date();
+                                metaProperty.deleted = new Date();
+                                metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.target_ref;
 
                                 if(resultObj.metaProperties === undefined){
@@ -51,7 +52,8 @@ module.exports = {
                             stixSchemaless.findById({ _id: targetId }, (err, result) => {
                                 const resultObj = result.toObject();
                                 const metaProperty = {};
-                                metaProperty.modified = new Date();
+                                metaProperty.deleted = new Date();
+                                metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.source_ref;
 
                                 if(resultObj.metaProperties === undefined){
