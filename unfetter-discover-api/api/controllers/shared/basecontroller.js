@@ -44,8 +44,8 @@ module.exports = class BaseController {
                     if (res.metaProperties !== undefined) {
                         temp = { ...temp, ...res.metaProperties };
                     }
-                    if (res.previousVersions !== undefined) {
-                        temp = { ...temp, ...res.previousVersions };
+                    if (res.previousVersions != undefined) {
+                        temp['previous_versions'] = res.previousVersions;
                     }
                     return temp;
                 });
@@ -93,8 +93,7 @@ module.exports = class BaseController {
                         temp = { ...temp, ...res.extendedProperties };
                     }
                     if (res.previousVersions != undefined) {
-                      console.log(res.previousVersions);
-                        temp = { ...temp, ...res.previousVersions };
+                        temp['previous_versions'] = res.previousVersions;
                     }
                     return temp;
                 });
@@ -125,7 +124,7 @@ module.exports = class BaseController {
                           temp = { ...temp, ...res.metaProperties };
                       }
                       if (res.previousVersions != undefined) {
-                          temp = { ...temp, ...res.previousVersions };
+                          temp['previous_versions'] = res.previousVersions;
                       }
                       return temp;
                   });
@@ -137,11 +136,11 @@ module.exports = class BaseController {
                 data = result
                     .map(res => res.toObject())
                     .map(res => {
-                        if (res.previousVersions !== undefined) {
-                            return { ...res.stix, ...res.previousVersions};
-                        } else {
-                            return res.stix;
+                        let temp = res.stix;
+                        if (res.previousVersions != undefined) {
+                            temp['previous_versions'] = res.previousVersions;
                         }
+                        return temp;
                     });
 
         // Delete this if this function works!
@@ -236,7 +235,6 @@ module.exports = class BaseController {
                 let data = getEnhancedData(result, req.swagger.params);
 
                 const convertedResult = jsonApiConverter.convertJsonToJsonApi(data[0], type, requestedUrl);
-                console.log(convertedResult);
                 return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
             }
 
@@ -352,7 +350,7 @@ module.exports = class BaseController {
                         resultObj.previousVersions = [];
                     }
                     const currObj = Object.assign({}, resultObj.stix, resultObj.extendedProperties);
-                    resultObj.previousVersions.push(currObj);
+                    resultObj.previousVersions.unshift(currObj);
 
                     for (const key in incomingObj) {
                         if (key === 'metaProperties') {
@@ -413,21 +411,28 @@ module.exports = class BaseController {
         };
     }
 
-    deleteById() {
-        const type = this.type;
-        const model = this.model;
-        const relationshipModel = modelFactory.getModel('relationship');
+    deleteByIdCb(callback) {
         return (req, res) => {
             res.header('Content-Type', 'application/vnd.api+json');
 
             const id = req.swagger.params.id ? req.swagger.params.id.value : '';
 
+            callback(req, res, id);
+        };
+    }
+
+    deleteById() {
+        const type = this.type;
+        const model = this.model;
+        const relationshipModel = modelFactory.getModel('relationship');
+
+        return this.deleteByIdCb((req, res, id) => {
             const promises = [];
             // per mongo documentation
             // Mongoose queries are not promises. However, they do have a .then() function for yield and async/await.
             // If you need a fully- fledged promise, use the .exec() function.
             promises.push(model.remove({ _id: id }).exec());
-            promises.push(relationshipModel.remove({ $or: [{ source_ref: id }, { target_ref: id }] }).exec());
+            promises.push(relationshipModel.remove({ $or: [{ 'stix.source_ref': id }, { 'stix.target_ref': id }] }).exec());
             Promise.all(promises).then((response) => {
                 if (response && response.length > 0 && response[0].result && response[0].result.n === 1) {
                     return res.status(200).json({ data: { type: 'Success', message: `Deleted id ${id}` } });
@@ -437,6 +442,6 @@ module.exports = class BaseController {
             }).catch((err) => {
                 res.status(500).json({ errors: [{ status: 500, source: '', title: 'Error', code: '', detail: 'An unknown error has occurred.' }] });
             });
-        };
-    }
+        });
+    } 
 }
