@@ -3,33 +3,35 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const GithubStrategy = require('passport-github').Strategy;
-const HttpsProxyAgent = require('https-proxy-agent');
 
 const config = require('../config/config');
 const userModel = require('../models/user');
 const generateId = require('../helpers/stix').id;
 
-// Github
 const githubStrategy = new GithubStrategy({
     clientID: config.github.clientID,
     clientSecret: config.github.clientSecret,
     callbackURL: config.github.callbackURL
-}, function (accessToken, refreshToken, profile, cb) {
+}, (accessToken, refreshToken, profile, cb) => {
     return cb(null, profile);
 });
 
-if (process.env['https_proxy']) {
-    githubStrategy._oauth2.setAgent(new HttpsProxyAgent(process.env['https_proxy']));
+if (process.env.HTTPS_PROXY_URL && process.env.HTTPS_PROXY_URL !== '') {
+    console.log('Attempting to configure proxy');
+    const HttpsProxyAgent = require('https-proxy-agent');
+    githubStrategy._oauth2.setAgent(new HttpsProxyAgent(process.env.HTTPS_PROXY_URL));
+} else {
+    console.log('Not using a proxy');
 }
 
+// Github
 passport.use(githubStrategy);
 
-passport.serializeUser(function (user, cb) {
+passport.serializeUser((user, cb) => {
     cb(null, user);
 });
 
-passport.deserializeUser(function (obj, cb) {
-    console.log(obj);
+passport.deserializeUser((obj, cb) => {
     cb(null, obj);
 });
 
