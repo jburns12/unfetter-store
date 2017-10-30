@@ -3,22 +3,26 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const GithubStrategy = require('passport-github').Strategy;
+const HttpsProxyAgent = require('https-proxy-agent');
 
 const config = require('../config/config');
 const userModel = require('../models/user');
 const generateId = require('../helpers/stix').id;
 
 // Github
-passport.use(new GithubStrategy({
+const githubStrategy = new GithubStrategy({
     clientID: config.github.clientID,
     clientSecret: config.github.clientSecret,
     callbackURL: config.github.callbackURL
-},
-function (accessToken, refreshToken, profile, cb) {
-    // TODO process token here
-    console.log(accessToken);
+}, function (accessToken, refreshToken, profile, cb) {
     return cb(null, profile);
-}));
+});
+
+if (process.env['https_proxy']) {
+    githubStrategy._oauth2.setAgent(new HttpsProxyAgent(process.env['https_proxy']));
+}
+
+passport.use(githubStrategy);
 
 passport.serializeUser(function (user, cb) {
     cb(null, user);
