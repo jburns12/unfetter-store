@@ -25,7 +25,7 @@ module.exports = {
                 const deletedRelationship = result.toObject();
                 const sourceId = deletedRelationship.stix.source_ref;
                 const targetId = deletedRelationship.stix.target_ref;
-
+                console.log(deletedRelationship);
                 // Confirm we have two IDs to query for
                 if (sourceId && targetId) {
                     stixSchemaless.find({$or: [{_id: sourceId}, {_id: targetId}]}, (err, results) => {
@@ -33,8 +33,12 @@ module.exports = {
                             stixSchemaless.findById({ _id: sourceId }, (err, result) => {
                                 const resultObj = result.toObject();
                                 const metaProperty = {};
-                                metaProperty.modified = new Date();
+                                metaProperty.deleted = new Date();
+                                metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.target_ref;
+                                if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
+                                    metaProperty.id = resultObj.metaProperties.mitreId;
+                                }
 
                                 if(resultObj.metaProperties === undefined){
                                     resultObj.metaProperties = {};
@@ -51,8 +55,12 @@ module.exports = {
                             stixSchemaless.findById({ _id: targetId }, (err, result) => {
                                 const resultObj = result.toObject();
                                 const metaProperty = {};
-                                metaProperty.modified = new Date();
+                                metaProperty.deleted = new Date();
+                                metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.source_ref;
+                                if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
+                                    metaProperty.id = resultObj.metaProperties.mitreId;
+                                }
 
                                 if(resultObj.metaProperties === undefined){
                                     resultObj.metaProperties = {};

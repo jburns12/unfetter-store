@@ -455,7 +455,7 @@ module.exports = class BaseController {
             // Mongoose queries are not promises. However, they do have a .then() function for yield and async/await.
             // If you need a fully- fledged promise, use the .exec() function.
             promises.push(model.remove({ _id: id }).exec());
-            promises.push(relationshipModel.remove({ $or: [{ 'stix.source_ref': id }, { 'stix.target_ref': id }] }).exec());
+            promises.push(relationshipModel.remove({ $or: [{ 'stix.source_ref': id }, { 'stix.target_r`ef': id }] }).exec());
             Promise.all(promises).then((response) => {
                 if (response && response.length > 0 && response[0].result && response[0].result.n === 1) {
                     return res.status(200).json({ data: { type: 'Success', message: `Deleted id ${id}` } });
