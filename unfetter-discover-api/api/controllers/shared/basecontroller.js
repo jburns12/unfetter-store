@@ -281,9 +281,14 @@ module.exports = class BaseController {
 
                 // Process extended properties
                 let extendedProperties = {};
+                let mitreId = null;
                 for(let prop of Object.keys(data.attributes)) {
                     if(prop.match(/^x_/) !== null) {
-                        extendedProperties[prop] = data.attributes[prop];
+                        if(prop.match(/^x_mitre_id/) !== null) {
+                            mitreId = data.attributes[prop];
+                        } else {
+                            extendedProperties[prop] = data.attributes[prop];
+                        }
                         delete obj.stix[prop];
                     }
                 }
@@ -295,8 +300,16 @@ module.exports = class BaseController {
                     let tempMeta = obj.stix.metaProperties;
                     delete obj.stix.metaProperties;
                     obj.metaProperties = tempMeta;
+                    if (mitreId) {
+                        obj.metaProperties['mitreId'] = mitreId;
+                    }
+                } else {
+                    if (mitreId) {
+                        obj.metaProperties = {};
+                        obj.metaProperties['mitreId'] = mitreId;
+                    }
                 }
-
+                console.log(obj);
                 const newDocument = new model(obj);
 
                 const error = newDocument.validateSync();
@@ -309,7 +322,6 @@ module.exports = class BaseController {
                 }
 
                 newDocument._id = newDocument.stix.id;
-
                 model.create(newDocument, (err, result) => {
                     if (err) {
                         console.log(err);
@@ -350,8 +362,11 @@ module.exports = class BaseController {
                         resultObj.previousVersions = [];
                     }
                     const currObj = Object.assign({}, resultObj.stix, resultObj.extendedProperties);
+                    if (resultObj.metaProperties !== undefined && resultObj.metaProperties['mitreId'] !== undefined) {
+                        resultObj.stix.mitreId = resultObj.metaProperties['mitreId'];
+                    }
                     resultObj.previousVersions.unshift(currObj);
-
+                    let mitreId = null;
                     for (const key in incomingObj) {
                         if (key === 'metaProperties') {
                             for (const metaKey in incomingObj.metaProperties) {
@@ -363,10 +378,18 @@ module.exports = class BaseController {
                         } else if (key.match(/^x_/) === null && has.call(incomingObj, key)) {
                             resultObj.stix[key] = incomingObj[key];
                         } else if (key.match(/^x_/) !== null && has.call(incomingObj, key)) {
-                            if (resultObj.extendedProperties === undefined) {
-                                resultObj.extendedProperties = {};
+                            if(key.match(/^x_mitre_id/) !== null) {
+                                mitreId = incomingObj[key];
+                                if (resultObj.metaProperties === undefined) {
+                                    resultObj.metaProperties = {};
+                                }
+                                resultObj.metaProperties['mitreId'] = mitreId;
+                            } else {
+                                if (resultObj.extendedProperties === undefined) {
+                                    resultObj.extendedProperties = {};
+                                }
+                                resultObj.extendedProperties[key] = incomingObj[key];
                             }
-                            resultObj.extendedProperties[key] = incomingObj[key];
                         }
                     }
                     for (const oldKey in resultObj.extendedProperties){
