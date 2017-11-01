@@ -25,7 +25,7 @@ module.exports = class BaseController {
         // no extended properties or meta properties or previous versions
         if (swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value !== undefined && swaggerParams.extendedproperties.value === false &&
             (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
-            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)) {
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions === undefined || swaggerParams.previousversions.value === false)) {
             data = result
                 .map(res => res.toObject())
                 .map(res => res.stix);
@@ -53,7 +53,7 @@ module.exports = class BaseController {
         // extended and meta properties
         } else if ((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined || swaggerParams.extendedproperties.value === true) &&
             swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value !== undefined && swaggerParams.metaproperties.value === true &&
-            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)){
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions === undefined || swaggerParams.previousversions.value === false)){
             data = result
                 .map(res => res.toObject())
                 .map(res => {
@@ -70,7 +70,7 @@ module.exports = class BaseController {
         // Exteded properties only
         } else if (((swaggerParams.extendedproperties !== undefined && swaggerParams.extendedproperties.value === undefined) || swaggerParams.extendedproperties.value === true) &&
             (swaggerParams.metaproperties !== undefined && swaggerParams.metaproperties.value === undefined || swaggerParams.metaproperties.value === false) &&
-            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions.value === false)) {
+            (swaggerParams.previousversions !== undefined && swaggerParams.previousversions.value === undefined || swaggerParams.previousversions === undefined || swaggerParams.previousversions.value === false)) {
             data = result
                 .map(res => res.toObject())
                 .map(res => {
@@ -455,7 +455,7 @@ module.exports = class BaseController {
             // Mongoose queries are not promises. However, they do have a .then() function for yield and async/await.
             // If you need a fully- fledged promise, use the .exec() function.
             promises.push(model.remove({ _id: id }).exec());
-            promises.push(relationshipModel.remove({ $or: [{ 'stix.source_ref': id }, { 'stix.target_r`ef': id }] }).exec());
+            promises.push(relationshipModel.remove({ $or: [{ 'stix.source_ref': id }, { 'stix.target_ref': id }] }).exec());
             Promise.all(promises).then((response) => {
                 if (response && response.length > 0 && response[0].result && response[0].result.n === 1) {
                     return res.status(200).json({ data: { type: 'Success', message: `Deleted id ${id}` } });
