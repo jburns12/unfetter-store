@@ -37,9 +37,11 @@ module.exports = {
                                 metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.target_ref;
                                 if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
-                                    metaProperty.id = resultObj.metaProperties.mitreId;
+                                    metaProperty.created_id = resultObj.metaProperties.mitreId;
                                 }
-
+                                if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
+                                   metaProperty.deleted_id = req.user.identity.id;
+                                }
                                 if(resultObj.metaProperties === undefined){
                                     resultObj.metaProperties = {};
                                 }
@@ -59,9 +61,11 @@ module.exports = {
                                 metaProperty.created = deletedRelationship.stix.created;
                                 metaProperty.ref = deletedRelationship.stix.source_ref;
                                 if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
-                                    metaProperty.id = resultObj.metaProperties.mitreId;
+                                    metaProperty.created_id = resultObj.metaProperties.mitreId;
                                 }
-
+                                if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
+                                   metaProperty.deleted_id = req.user.identity.id;
+                                }
                                 if(resultObj.metaProperties === undefined){
                                     resultObj.metaProperties = {};
                                 }
