@@ -281,14 +281,9 @@ module.exports = class BaseController {
 
                 // Process extended properties
                 let extendedProperties = {};
-                let mitreId = null;
                 for(let prop of Object.keys(data.attributes)) {
                     if(prop.match(/^x_/) !== null) {
-                        if(prop.match(/^x_mitre_id/) !== null) {
-                            mitreId = data.attributes[prop];
-                        } else {
-                            extendedProperties[prop] = data.attributes[prop];
-                        }
+                        extendedProperties[prop] = data.attributes[prop];
                         delete obj.stix[prop];
                     }
                 }
@@ -300,13 +295,13 @@ module.exports = class BaseController {
                     let tempMeta = obj.stix.metaProperties;
                     delete obj.stix.metaProperties;
                     obj.metaProperties = tempMeta;
-                    if (mitreId) {
-                        obj.metaProperties['mitreId'] = mitreId;
+                    if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
+                        obj.metaProperties['mitreId'] = req.user.identity.id;
                     }
                 } else {
-                    if (mitreId) {
+                    if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
                         obj.metaProperties = {};
-                        obj.metaProperties['mitreId'] = mitreId;
+                        obj.metaProperties['mitreId'] = req.user.identity.id;
                     }
                 }
                 console.log(obj);
@@ -366,7 +361,7 @@ module.exports = class BaseController {
                         resultObj.stix.mitreId = resultObj.metaProperties['mitreId'];
                     }
                     resultObj.previousVersions.unshift(currObj);
-                    let mitreId = null;
+
                     for (const key in incomingObj) {
                         if (key === 'metaProperties') {
                             for (const metaKey in incomingObj.metaProperties) {
@@ -378,20 +373,21 @@ module.exports = class BaseController {
                         } else if (key.match(/^x_/) === null && has.call(incomingObj, key)) {
                             resultObj.stix[key] = incomingObj[key];
                         } else if (key.match(/^x_/) !== null && has.call(incomingObj, key)) {
-                            if(key.match(/^x_mitre_id/) !== null) {
-                                mitreId = incomingObj[key];
-                                if (resultObj.metaProperties === undefined) {
-                                    resultObj.metaProperties = {};
-                                }
-                                resultObj.metaProperties['mitreId'] = mitreId;
-                            } else {
-                                if (resultObj.extendedProperties === undefined) {
-                                    resultObj.extendedProperties = {};
-                                }
-                                resultObj.extendedProperties[key] = incomingObj[key];
+                            if (resultObj.extendedProperties === undefined) {
+                                resultObj.extendedProperties = {};
                             }
+                            resultObj.extendedProperties[key] = incomingObj[key];
                         }
                     }
+
+                    // Set user ID
+                    if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
+                        if (resultObj.metaProperties === undefined) {
+                            resultObj.metaProperties = {};
+                        }
+                        resultObj.metaProperties['mitreId'] = req.user.identity.id;
+                    }
+
                     for (const oldKey in resultObj.extendedProperties){
                         if (!(oldKey in incomingObj)){
                             delete resultObj.extendedProperties[oldKey];
