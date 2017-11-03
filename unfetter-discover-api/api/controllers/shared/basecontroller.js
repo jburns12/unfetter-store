@@ -358,7 +358,7 @@ module.exports = class BaseController {
                     }
                     const currObj = Object.assign({}, resultObj.stix, resultObj.extendedProperties);
                     if (resultObj.metaProperties !== undefined && resultObj.metaProperties['mitreId'] !== undefined) {
-                        resultObj.stix.mitreId = resultObj.metaProperties['mitreId'];
+                        currObj.mitreId = resultObj.metaProperties['mitreId'];
                     }
                     resultObj.previousVersions.unshift(currObj);
 
