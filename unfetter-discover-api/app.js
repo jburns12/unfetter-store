@@ -12,7 +12,7 @@ if (process.env.ENV === 'dev') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-// ~~~ Module Imports ~~~ 
+// ~~~ Module Imports ~~~
 
 const SwaggerExpress = require('swagger-express-mw');
 const path = require('path');
@@ -48,10 +48,22 @@ if (!process.env.RUN_MODE || process.env.RUN_MODE === 'UAC') {
   });
   app.use('/admin', require('./api/express-controllers/admin'));
 
+  app.use('/organizations-management', passport.authenticate('jwt', { session: false }), (req, res, next) => {
+    passportConfig.jwtOrganizations(req, res, next);
+  });
+  app.use('/organizations-management', require('./api/express-controllers/organizations-management'));
+
   // Auth middleware
-  app.use('*', passport.authenticate('jwt', { session: false }), (req, res, next) => {
+  app.post('*', passport.authenticate('jwt', { session: false }), (req, res, next) => {
     passportConfig.jwtStandard(req, res, next);
   });
+  app.patch('*', passport.authenticate('jwt', { session: false }), (req, res, next) => {
+    passportConfig.jwtStandard(req, res, next);
+  });
+  app.delete('*', passport.authenticate('jwt', { session: false }), (req, res, next) => {
+    passportConfig.jwtStandard(req, res, next);
+  });
+  app.use('/organizations', require('./api/express-controllers/organizations'));
   app.use('/web-analytics', require('./api/express-controllers/web-analytics'));
 }
 
