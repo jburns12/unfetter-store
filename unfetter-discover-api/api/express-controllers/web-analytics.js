@@ -3,12 +3,10 @@ const router = express.Router();
 
 const model = require('../models/web-analytics');
 
-router.get('/visit', (req, res) => {
-
+router.post('/visit', (req, res) => {
     const userId = req.user._id;
 
     if (userId) {
-
         const obj = {
             eventType: 'visit',
             eventData: {
@@ -31,9 +29,9 @@ router.get('/visit', (req, res) => {
             });
         }
 
-    } else {        
+    } else {
         return res.status(500).json({ errors: [{ status: 500, source: '', title: 'Error', code: '', detail: 'An unknown error has occurred.' }] });
-    }    
+    }
 });
 
 module.exports = router;
