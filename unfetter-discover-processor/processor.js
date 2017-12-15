@@ -110,43 +110,52 @@ function run(stixObjects = []) {
     // STIX files
     if (argv['stix'] !== undefined) {
         console.log('Processing the following STIX files: ', argv.stix);
-        let stixToUpload = filesToJson(argv.stix)
-            .map(bundle => bundle.objects)
-            .reduce((prev, cur) => prev.concat(cur), [])
-            .map(stix => {
-                let retVal = {};
-                retVal._id = stix.id;
-                retVal.stix = stix;
-                return retVal;
-            })
-            .concat(stixObjects);
+        for (let val of argv.stix) {
+            let currFile = [];
+            let fileNameArr = val.split('/');
+            let collectionName = fileNameArr[fileNameArr.length - 1].split('.')[0];
+            currFile.push(val);
+            let stixToUpload = filesToJson(currFile)
+                .map(bundle => bundle.objects)
+                .reduce((prev, cur) => prev.concat(cur), [])
+                .map(stix => {
+                    let retVal = {};
+                    retVal._id = stix.id;
+                    retVal.stix = stix;
+                    retVal.metaProperties = {};
+                    retVal.metaProperties['collection'] = [];
+                    retVal.metaProperties['collection'].push(collectionName);
+                    return retVal;
+                })
+                .concat(stixObjects);
 
-        // Enhanced stix files
-        if (argv.enhancedStixProperties !== undefined) {
-            console.log('Processing the following enhanced STIX properties files: ', argv.enhancedStixProperties);
-            let enhancedPropsToUpload = filesToJson(argv.enhancedStixProperties)
-                .reduce((prev, cur) => prev.concat(cur), []);
+            // Enhanced stix files
+            if (argv.enhancedStixProperties !== undefined) {
+                console.log('Processing the following enhanced STIX properties files: ', argv.enhancedStixProperties);
+                let enhancedPropsToUpload = filesToJson(argv.enhancedStixProperties)
+                    .reduce((prev, cur) => prev.concat(cur), []);
 
-            enhancedPropsToUpload.forEach(enhancedProps => {
-                let stixToEnhance = stixToUpload.find(stix => stix._id === enhancedProps.id);
-                if (stixToEnhance) {
-                    if (enhancedProps.extendedProperties !== undefined) {
-                        stixToEnhance.extendedProperties = enhancedProps.extendedProperties;
-                    }
+                enhancedPropsToUpload.forEach(enhancedProps => {
+                    let stixToEnhance = stixToUpload.find(stix => stix._id === enhancedProps.id);
+                    if (stixToEnhance) {
+                        if (enhancedProps.extendedProperties !== undefined) {
+                            stixToEnhance.extendedProperties = enhancedProps.extendedProperties;
+                        }
 
-                    if (enhancedProps.metaProperties !== undefined) {
-                        stixToEnhance.metaProperties = enhancedProps.metaProperties;
+                        if (enhancedProps.metaProperties !== undefined) {
+                            stixToEnhance.metaProperties = enhancedProps.metaProperties;
+                        }
+                        if (enhancedProps.previousVersions !== undefined) {
+                            stixToEnhance.previousVersions = enhancedProps.previousVersions;
+                        }
+                    } else {
+                        // TODO attempt to upload to database if not in processed STIX document
+                        console.log('STIX property enhancement failed - Unable to find matching stix for: ', enhancedProps._id);
                     }
-                    if (enhancedProps.previousVersions !== undefined) {
-                        stixToEnhance.previousVersions = enhancedProps.previousVersions;
-                    }
-                } else {
-                    // TODO attempt to upload to database if not in processed STIX document
-                    console.log('STIX property enhancement failed - Unable to find matching stix for: ', enhancedProps._id);
-                }
-            });
-        }
-        promises.push(stixModel.create(stixToUpload));
+                });
+            }
+            promises.push(stixModel.create(stixToUpload));
+      }
 
     } else if (argv.enhancedStixProperties !== undefined) {
         // TODO attempt to upload to database if not STIX document provided
