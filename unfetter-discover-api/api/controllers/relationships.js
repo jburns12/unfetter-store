@@ -25,56 +25,61 @@ module.exports = {
                 const deletedRelationship = result.toObject();
                 const sourceId = deletedRelationship.stix.source_ref;
                 const targetId = deletedRelationship.stix.target_ref;
-                console.log(deletedRelationship);
                 // Confirm we have two IDs to query for
                 if (sourceId && targetId) {
                     stixSchemaless.find({$or: [{_id: sourceId}, {_id: targetId}]}, (err, results) => {
                         if (results.length === 2) {
-                            stixSchemaless.findById({ _id: sourceId }, (err, result) => {
-                                const resultObj = result.toObject();
-                                const metaProperty = {};
-                                metaProperty.deleted = new Date();
-                                metaProperty.created = deletedRelationship.stix.created;
-                                metaProperty.ref = deletedRelationship.stix.target_ref;
-                                if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
-                                    metaProperty.created_id = resultObj.metaProperties.mitreId;
-                                }
-                                if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
-                                   metaProperty.deleted_id = req.user.identity.id;
-                                }
-                                if(resultObj.metaProperties === undefined){
-                                    resultObj.metaProperties = {};
-                                }
-                                if(resultObj.metaProperties['deletedRelationships'] === undefined) {
-                                    resultObj.metaProperties['deletedRelationships'] = [];
-                                }
-                                resultObj.metaProperties['deletedRelationships'].push(metaProperty);
+                            stixSchemaless.findById({ _id: targetId }, (err, origResult) => {
+                                let origResultObj = origResult.toObject();
+                                stixSchemaless.findById({ _id: sourceId }, (err, result) => {
+                                    const resultObj = result.toObject();
+                                    const metaProperty = {};
+                                    metaProperty.deleted = new Date();
+                                    metaProperty.created = deletedRelationship.stix.created;
+                                    metaProperty.ref = deletedRelationship.stix.target_ref;
+                                    metaProperty.name = origResultObj.stix.name;
+                                    if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
+                                        metaProperty.created_id = resultObj.metaProperties.mitreId;
+                                    }
+                                    if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined, req.user.identity.name !== undefined) {
+                                       metaProperty.deleted_id = {'id': req.user.identity.id, 'name': req.user.identity.name};
+                                    }
+                                    if(resultObj.metaProperties === undefined){
+                                        resultObj.metaProperties = {};
+                                    }
+                                    if(resultObj.metaProperties['deletedRelationships'] === undefined) {
+                                        resultObj.metaProperties['deletedRelationships'] = [];
+                                    }
+                                    resultObj.metaProperties['deletedRelationships'].push(metaProperty);
 
-                                stixSchemaless.findOneAndUpdate({ _id: sourceId }, resultObj, { new: true }, (errUpdate, resultUpdate) => {
-                                  console.log(resultUpdate);
+                                    stixSchemaless.findOneAndUpdate({ _id: sourceId }, resultObj, { new: true }, (errUpdate, resultUpdate) => {
+                                    });
                                 });
                             });
-                            stixSchemaless.findById({ _id: targetId }, (err, result) => {
-                                const resultObj = result.toObject();
-                                const metaProperty = {};
-                                metaProperty.deleted = new Date();
-                                metaProperty.created = deletedRelationship.stix.created;
-                                metaProperty.ref = deletedRelationship.stix.source_ref;
-                                if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
-                                    metaProperty.created_id = resultObj.metaProperties.mitreId;
-                                }
-                                if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
-                                   metaProperty.deleted_id = req.user.identity.id;
-                                }
-                                if(resultObj.metaProperties === undefined){
-                                    resultObj.metaProperties = {};
-                                }
-                                if(resultObj.metaProperties['deletedRelationships'] === undefined) {
-                                    resultObj.metaProperties['deletedRelationships'] = [];
-                                }
-                                resultObj.metaProperties['deletedRelationships'].push(metaProperty);
-
-                                stixSchemaless.findOneAndUpdate({ _id: targetId }, resultObj, { new: true }, (errUpdate, resultUpdate) => {
+                            stixSchemaless.findById({ _id: sourceId}, (err, origResult) => {
+                                let origResultObj = origResult.toObject();
+                                stixSchemaless.findById({ _id: targetId }, (err, result) => {
+                                    const resultObj = result.toObject();
+                                    const metaProperty = {};
+                                    metaProperty.deleted = new Date();
+                                    metaProperty.created = deletedRelationship.stix.created;
+                                    metaProperty.ref = deletedRelationship.stix.source_ref;
+                                    metaProperty.name = origResultObj.stix.name;
+                                    if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
+                                        metaProperty.created_id = resultObj.metaProperties.mitreId;
+                                    }
+                                    if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined, req.user.identity.name !== undefined) {
+                                       metaProperty.deleted_id = {'id': req.user.identity.id, 'name': req.user.identity.name};
+                                    }
+                                    if(resultObj.metaProperties === undefined){
+                                        resultObj.metaProperties = {};
+                                    }
+                                    if(resultObj.metaProperties['deletedRelationships'] === undefined) {
+                                        resultObj.metaProperties['deletedRelationships'] = [];
+                                    }
+                                    resultObj.metaProperties['deletedRelationships'].push(metaProperty);
+                                    stixSchemaless.findOneAndUpdate({ _id: targetId }, resultObj, { new: true }, (errUpdate, resultUpdate) => {
+                                    });
                                 });
                             });
                             return res.status(200).json({ data: { type: 'Success', message: `Deleted id ${id}` } });

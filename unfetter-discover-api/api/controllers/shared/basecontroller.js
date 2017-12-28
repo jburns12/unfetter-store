@@ -296,12 +296,12 @@ module.exports = class BaseController {
                     delete obj.stix.metaProperties;
                     obj.metaProperties = tempMeta;
                     if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
-                        obj.metaProperties['mitreId'] = req.user.identity.id;
+                        obj.metaProperties['mitreId'] = {'id': req.user.identity.id, 'name': req.user.identity.name};
                     }
                 } else {
                     if (req.user !== undefined && req.user.identity !== undefined && req.user.identity.id !== undefined) {
                         obj.metaProperties = {};
-                        obj.metaProperties['mitreId'] = req.user.identity.id;
+                        obj.metaProperties['mitreId'] = {'id': req.user.identity.id, 'name': req.user.identity.name};
                     }
                 }
 
@@ -398,7 +398,7 @@ module.exports = class BaseController {
                         if (resultObj.metaProperties === undefined) {
                             resultObj.metaProperties = {};
                         }
-                        resultObj.metaProperties['mitreId'] = req.user.identity.id;
+                        resultObj.metaProperties['mitreId'] = {'id': req.user.identity.id, 'name': req.user.identity.name};
                     }
 
                     for (const oldKey in resultObj.extendedProperties){
@@ -430,7 +430,6 @@ module.exports = class BaseController {
                         let resObj = resultUpdate.toObject();
                         const requestedUrl = apiRoot + req.originalUrl;
                         const convertedResult = jsonApiConverter.convertJsonToJsonApi(resObj.extendedProperties !== undefined ? { ...resObj.stix, ...resObj.extendedProperties } : resObj.stix, type, requestedUrl);
-                        console.log(currObj);
                         return res.status(200).json({ links: { self: requestedUrl, }, data: convertedResult });
                     }
 
