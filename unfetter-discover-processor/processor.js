@@ -127,6 +127,15 @@ function run(stixObjects = []) {
             let currFile = [];
             let fileNameArr = val.split('/');
             let collectionName = fileNameArr[fileNameArr.length - 1].split('.')[0];
+            let collectionUuid;
+
+            if (collectionName === 'enterprise-attack') {
+                collectionUuid = '95ecc380-afe9-11e4-9b6c-751b66dd541e';
+            }
+            else {
+                collectionUuid = '5d2668c0-4e41-4dd6-9d79-bf1ab86fddf1';
+            }
+            
             currFile.push(val);
             let stixToUpload = filesToJson(currFile)
                 .map(bundle => bundle.objects)
@@ -137,7 +146,7 @@ function run(stixObjects = []) {
                     retVal.stix = stix;
                     retVal.metaProperties = {};
                     retVal.metaProperties['collection'] = [];
-                    retVal.metaProperties['collection'].push(collectionName);
+                    retVal.metaProperties['collection'].push(collectionUuid);
                     return retVal;
                 })
                 .concat(stixObjects);
