@@ -37,7 +37,16 @@ module.exports = {
                                     metaProperty.deleted = new Date();
                                     metaProperty.created = deletedRelationship.stix.created;
                                     metaProperty.ref = deletedRelationship.stix.target_ref;
-                                    metaProperty.name = origResultObj.stix.name;
+                                    metaProperty.id = deletedRelationship.stix.id;
+                                    metaProperty.name = origResultObj.stix.name
+                                    if (origResultObj.stix.external_references !== undefined) {
+                                        for (let i = 0; i < origResultObj.stix.external_references.length; i++) {
+                                            if (origResultObj.stix.external_references[i].external_id !== undefined) {
+                                                metaProperty.name = origResultObj.stix.external_references[i].external_id;
+                                            }
+                                        }
+                                    }
+
                                     if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
                                         metaProperty.created_id = resultObj.metaProperties.mitreId;
                                     }
@@ -64,7 +73,15 @@ module.exports = {
                                     metaProperty.deleted = new Date();
                                     metaProperty.created = deletedRelationship.stix.created;
                                     metaProperty.ref = deletedRelationship.stix.source_ref;
+                                    metaProperty.id = deletedRelationship.stix.id;
                                     metaProperty.name = origResultObj.stix.name;
+                                    if (origResultObj.stix.external_references !== undefined) {
+                                        for (let i = 0; i < origResultObj.stix.external_references.length; i++) {
+                                            if (origResultObj.stix.external_references[i].external_id !== undefined) {
+                                                metaProperty.name = origResultObj.stix.external_references[i].external_id;
+                                            }
+                                        }
+                                    }
                                     if (resultObj.metaProperties !== undefined && resultObj.metaProperties.mitreId !== undefined) {
                                         metaProperty.created_id = resultObj.metaProperties.mitreId;
                                     }
