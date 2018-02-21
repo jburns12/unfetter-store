@@ -4,14 +4,16 @@
 const MAX_NUM_CONNECT_ATTEMPTS = 10;
 // The amount of time between each connection attempt in ms
 const CONNECTION_RETRY_TIME = 5000;
-const MITRE_STIX_URL = 'https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json';
+const MITRE_STIX_URLS = {'enterprise-attack': 'https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json',
+                         'mobile-attack': 'https://raw.githubusercontent.com/mitre/cti/master/mobile-attack/mobile-attack.json',
+                         'pre-attack': 'https://raw.githubusercontent.com/mitre/cti/master/pre-attack/pre-attack.json'};
 
 /* ~~~ Vendor Libraries ~~~ */
 
 const fs = require('fs');
 const mongoose = require('mongoose');
-const fetch = require('node-fetch');
 const url = require('url');
+const fetch = require('node-fetch');
 const argv = require('yargs')
 
     .alias('h', 'host')
@@ -77,7 +79,7 @@ function filesToJson(filePaths) {
         .filter(jsonObj => jsonObj);
 }
 
-function getMitreData() {
+function getMitreData(domain) {
     let instanceOptions = {};
 
     if (process.env.HTTPS_PROXY_URL && process.env.HTTPS_PROXY_URL !== '') {
@@ -90,9 +92,8 @@ function getMitreData() {
     } else {
         console.log('Not using a proxy');
     }
-
     return new Promise((resolve, reject) => {
-        fetch(MITRE_STIX_URL, instanceOptions)
+        fetch(MITRE_STIX_URLS[domain], instanceOptions)
             .then(fetchRes => fetchRes.json())
             .then(fetchRes => {
                 let stixToUpload = fetchRes.objects
@@ -110,6 +111,20 @@ function getMitreData() {
                                 retVal.stix[prop] = stix[prop];
                             }
                         }
+                        let collectionUuid;
+            
+                        if (domain === 'enterprise-attack') {
+                            collectionUuid = '95ecc380-afe9-11e4-9b6c-751b66dd541e';
+                        }
+                        else if (domain === 'mobile-attack'){
+                            collectionUuid = '2f669986-b40b-4423-b720-4396ca6a462b';
+                        }
+                        else {
+                            collectionUuid = '062767bd-02d2-4b72-84ba-56caef0f8658'
+                        }
+                        retVal.metaProperties = {};
+                        retVal.metaProperties['collection'] = [];
+                        retVal.metaProperties['collection'].push(collectionUuid);
                         return retVal;
                     });
                 resolve(stixToUpload);
@@ -119,46 +134,67 @@ function getMitreData() {
 }
 
 /* ~~~ Main Function ~~~ */
-
 function run(stixObjects = []) {
     // STIX files
     if (argv['stix'] !== undefined) {
         console.log('Processing the following STIX files: ', argv.stix);
-        let stixToUpload = filesToJson(argv.stix)
-            .map(bundle => bundle.objects)
-            .reduce((prev, cur) => prev.concat(cur), [])
-            .map(stix => {
-                let retVal = {};
-                retVal._id = stix.id;
-                retVal.stix = stix;
-                return retVal;
-            })
-            .concat(stixObjects);
+        for (let val of argv.stix) {
+            let currFile = [];
+            let fileNameArr = val.split('/');
+            let collectionName = fileNameArr[fileNameArr.length - 1].split('.')[0];
+            let collectionUuid;
 
-        // Enhanced stix files
-        if (argv.enhancedStixProperties !== undefined) {
-            console.log('Processing the following enhanced STIX properties files: ', argv.enhancedStixProperties);
-            let enhancedPropsToUpload = filesToJson(argv.enhancedStixProperties)
-                .reduce((prev, cur) => prev.concat(cur), []);
+            if (collectionName === 'enterprise-attack') {
+                collectionUuid = '95ecc380-afe9-11e4-9b6c-751b66dd541e';
+            }
+            else {
+                collectionUuid = '5d2668c0-4e41-4dd6-9d79-bf1ab86fddf1';
+            }
+            
+            currFile.push(val);
+            let stixToUpload = filesToJson(currFile)
+                .map(bundle => bundle.objects)
+                .reduce((prev, cur) => prev.concat(cur), [])
+                .map(stix => {
+                    let retVal = {};
+                    retVal._id = stix.id;
+                    retVal.stix = stix;
+                    retVal.metaProperties = {};
+                    retVal.metaProperties['collection'] = [];
+                    retVal.metaProperties['collection'].push(collectionUuid);
+                    return retVal;
+                })
+                .concat(stixObjects);
 
-            enhancedPropsToUpload.forEach(enhancedProps => {
-                let stixToEnhance = stixToUpload.find(stix => stix._id === enhancedProps.id);
-                if (stixToEnhance) {
-                    if (enhancedProps.extendedProperties !== undefined) {
-                        stixToEnhance.extendedProperties = enhancedProps.extendedProperties;
+            // Enhanced stix files
+            if (argv.enhancedStixProperties !== undefined) {
+                console.log('Processing the following enhanced STIX properties files: ', argv.enhancedStixProperties);
+                let enhancedPropsToUpload = filesToJson(argv.enhancedStixProperties)
+                    .reduce((prev, cur) => prev.concat(cur), []);
+
+                enhancedPropsToUpload.forEach(enhancedProps => {
+                    let stixToEnhance = stixToUpload.find(stix => stix._id === enhancedProps.id);
+                    if (stixToEnhance) {
+                        if (enhancedProps.extendedProperties !== undefined) {
+                            stixToEnhance.extendedProperties = enhancedProps.extendedProperties;
+                        }
+
+                        if (enhancedProps.metaProperties !== undefined) {
+                            stixToEnhance.metaProperties = enhancedProps.metaProperties;
+                        }
+                        if (enhancedProps.previousVersions !== undefined) {
+                            stixToEnhance.previousVersions = enhancedProps.previousVersions;
+                        }
+                    } else {
+                        // TODO attempt to upload to database if not in processed STIX document
+                        console.log('STIX property enhancement failed - Unable to find matching stix for: ', enhancedProps._id);
                     }
-
-                    if (enhancedProps.metaProperties !== undefined) {
-                        stixToEnhance.metaProperties = enhancedProps.metaProperties;
-                    }
-                } else {
-                    // TODO attempt to upload to database if not in processed STIX document
-                    console.log('STIX property enhancement failed - Unable to find matching stix for: ', enhancedProps._id);
-                }
-            });
+                });
+            }
+            promises.push(stixModel.create(stixToUpload));
         }
-        promises.push(stixModel.create(stixToUpload));
-
+    } else if (stixObjects.length > 0) {
+        promises.push(stixModel.create(stixObjects));
     } else if (argv.enhancedStixProperties !== undefined) {
         // TODO attempt to upload to database if not STIX document provided
         console.log('Enhanced STIX files require a base STIX file');
@@ -201,17 +237,54 @@ function run(stixObjects = []) {
 let connAttempts = 0;
 let conn;
 let promises = [];
+
+function removeDuplicates(myArr) {
+    return myArr.filter((obj, pos, arr) => {
+        return arr.map(mapObj => mapObj.stix.id).indexOf(obj.stix.id) === pos;
+    });
+}
+
 // Wait for mongoose to connect before processing
 mongoose.connection.on('connected', function (err) {
     console.log('connected to mongodb');
     clearInterval(conIntervel);
-
+    let allRes = [];
     // Add mitre data
     if (argv.addMitreData !== undefined && argv.addMitreData === true) {
         console.log('Adding Mitre data');
-        getMitreData()
+        getMitreData('enterprise-attack')
             .then(res => {
-                run(res);
+                allRes = allRes.concat(res);
+                getMitreData('mobile-attack')
+                .then(res => {
+                    allRes = allRes.concat(res);
+                    getMitreData('pre-attack')
+                    .then(res => {
+                        allRes = allRes.concat(res);
+                        for (i = 0; i < allRes.length; ++i) {
+                            let index = allRes.findIndex(k => k.stix.id == allRes[i].stix.id);
+                            if (index != i) {
+                                allRes[index].metaProperties.collection = allRes[index].metaProperties.collection.concat(allRes[i].metaProperties.collection);
+                            }
+                        }
+                        allRes = removeDuplicates(allRes);
+                        run(allRes);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        mongoose.connection.close(() => {
+                            console.log('closed mongo connection');
+                            process.exit(1);
+                        });
+                    });
+                })
+                .catch(err => {
+                    console.log(err);
+                    mongoose.connection.close(() => {
+                        console.log('closed mongo connection');
+                        process.exit(1);
+                    });
+                });
             })
             .catch(err => {
                 console.log(err);

@@ -1,5 +1,8 @@
 FROM node:9.2-alpine
 
+ENV http_proxy=http://gatekeeper-w.mitre.org:80
+ENV https_proxy=http://gatekeeper-w.mitre.org:80
+
 LABEL MAINTAINER="unfetter"
 LABEL Description="Node program that loads STIX data into MongoDB"
 

@@ -1,5 +1,0 @@
-  required:
-    - error
-  properties:
-    error:
-      type: object

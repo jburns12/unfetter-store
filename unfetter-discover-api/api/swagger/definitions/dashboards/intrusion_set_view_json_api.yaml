@@ -1,6 +1,0 @@
-    type: object
-    properties:
-      data:
-        type: object
-      links:
-        $ref: "#/definitions/Links"
