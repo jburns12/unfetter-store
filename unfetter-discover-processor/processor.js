@@ -112,7 +112,7 @@ function getMitreData(domain) {
                             }
                         }
                         let collectionUuid;
-            
+
                         if (domain === 'enterprise-attack') {
                             collectionUuid = '95ecc380-afe9-11e4-9b6c-751b66dd541e';
                         }
@@ -150,7 +150,7 @@ function run(stixObjects = []) {
             else {
                 collectionUuid = '5d2668c0-4e41-4dd6-9d79-bf1ab86fddf1';
             }
-            
+
             currFile.push(val);
             let stixToUpload = filesToJson(currFile)
                 .map(bundle => bundle.objects)
@@ -159,9 +159,7 @@ function run(stixObjects = []) {
                     let retVal = {};
                     retVal._id = stix.id;
                     retVal.stix = stix;
-                    retVal.metaProperties = {};
-                    retVal.metaProperties['collection'] = [];
-                    retVal.metaProperties['collection'].push(collectionUuid);
+                    retVal.stix.x_mitre_collections = [collectionUuid];
                     return retVal;
                 })
                 .concat(stixObjects);
