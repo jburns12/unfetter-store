@@ -1,0 +1,6 @@
+.DS_Store
+.run.py.swo
+.run.py.swp
+output/
+modules/__pycache__
+debug.json
