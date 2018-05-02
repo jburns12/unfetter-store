@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const PythonShell = require('python-shell');
 const userModel = require('../models/user');
 const webAnalyticsModel = require('../models/web-analytics');
 
@@ -12,6 +13,24 @@ router.get('/users-pending-approval', (req, res) => {
             const users = result.map(res => res.toObject());
             return res.json({ data: { attributes: users } });
         }
+    });
+});
+
+router.get('/publish', (req, res) => {
+    var options = {
+        mode: 'text',
+        pythonPath: '/usr/bin/python3',
+        pythonOptions: ['-u'], // get print results in real-time
+        scriptPath: '/usr/share/unfetter-discover-api/publish-attack',
+      };
+      
+    PythonShell.run('publish.py', options, function (err, results) {
+        if (err) {
+            return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
+        }
+        // results is an array consisting of messages collected during execution
+        console.log('results: %j', results);
+        return res.json({ data: { attributes: results } });
     });
 });
 
