@@ -23,10 +23,11 @@ RUN apk update && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/lib/node_modules/npm/man && \
     rm -rf /usr/lib/node_modules/npm/doc && \
-    rm -rf /usr/lib/node_modules/npm/html
+   rm -rf /usr/lib/node_modules/npm/html
 
 COPY . $WORKING_DIRECTORY
 RUN apk add --update python3
+RUN apk add --update git
 RUN pip3 install -r $WORKING_DIRECTORY/publish-attack/requirements.txt
 RUN touch $WORKING_DIRECTORY/api/swagger/swagger.json && chmod 666 $WORKING_DIRECTORY/api/swagger/swagger.json
 RUN touch $WORKING_DIRECTORY/api/swagger/swagger.yaml && chmod 666 $WORKING_DIRECTORY/api/swagger/swagger.yaml

@@ -13,7 +13,7 @@ const githubStrategy = new GithubStrategy({
     clientSecret: config.github.clientSecret,
     callbackURL: config.github.callbackURL
 }, (accessToken, refreshToken, profile, cb) => {
-    return cb(null, profile);
+    return cb(null, { accessToken: accessToken, profile: profile });
 });
 
 if (process.env.HTTPS_PROXY_URL && process.env.HTTPS_PROXY_URL !== '') {
@@ -43,11 +43,12 @@ router.use(require('express-session')({
 router.use(passport.initialize());
 router.use(passport.session());
 
-router.get('/github-login', passport.authenticate('github', { scope: ['user:email']}));
+router.get('/github-login', passport.authenticate('github', { scope: ['user:email', 'repo']}));
 
 router.get('/github-callback', passport.authenticate('github', { failureRedirect:'/auth/github-login' }), (req, res) => {
     // hit unfetter api to update token
-    const githubUser = req.user;
+    const githubUser = req.user.profile;
+    const gitHubToken = req.user.accessToken;
     if (!githubUser) {
         res.json({success: false, message: 'User object is empty'});
     } else {
@@ -65,6 +66,7 @@ router.get('/github-callback', passport.authenticate('github', { failureRedirect
                 user.github = {};
                 user.github.userName = githubUser.username;
                 user.github.id = githubUser.id;
+                user.github.token = gitHubToken;
                 if (githubUser._json.avatar_url) {
                     user.github.avatar_url = githubUser._json.avatar_url;
                 }
@@ -98,14 +100,17 @@ router.get('/github-callback', passport.authenticate('github', { failureRedirect
             } else {
                 user = result[0].toObject();
                 registered = user.registered;
+                user.github.token = gitHubToken;
+                userModel.findOneAndUpdate({ 'github.id': githubUser.id }, user, { new: true }, (errUpdate, resultUpdate) => {
 
-                const token = jwt.sign(user, config.jwtSecret, {
-                    expiresIn: 604800 // 1 week
-                });
-                console.log(token);
-                console.log(`Returning github user:\n${JSON.stringify(user, null, 2)}`);
-                res.redirect(`${config.unfetterUiCallbackURL}/${encodeURIComponent(token)}/${registered}/github`);
-            }
+                    const token = jwt.sign(user, config.jwtSecret, {
+                        expiresIn: 604800 // 1 week
+                    });
+                    console.log(token);
+                    console.log(`Returning github user:\n${JSON.stringify(resultUpdate, null, 2)}`);
+                    res.redirect(`${config.unfetterUiCallbackURL}/${encodeURIComponent(token)}/${registered}/github`);
+                }
+            )};
         });
     }
 });

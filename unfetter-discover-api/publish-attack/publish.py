@@ -8,15 +8,15 @@ import shutil
 
 import simplejson as json
 
-from modules import download, lookup, scrub, util
+from modules import cti, download, lookup, scrub, util
 
 # suppress InsecureRequestWarning: Unverified HTTPS request is being made
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def gen_marking_definition(source):
+def gen_marking_definition(output_dir, source):
     try:
-        os.makedirs('output/' + source + '/marking-definition')
-        with open('output/' + source + '/marking-definition/marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168.json', 'w') as f:
+        os.makedirs(output_dir + source + '/marking-definition')
+        with open(output_dir + source + '/marking-definition/marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168.json', 'w') as f:
            stix = {}
            stix['type'] = 'bundle'
            stix['id'] = 'marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168'
@@ -40,8 +40,12 @@ def main():
     parser = argparse.ArgumentParser(description='Convert ATT&CK data to STIX')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
     parser.add_argument('-o', '--output', action='store', help='output directory')
+    parser.add_argument('-t', '--token', action='store', help='GitHub token')
+    parser.add_argument('-u', '--user', action='store', help='Github user')
+    parser.add_argument('-e', '--email', action='store', help='Github email')
 
     args = parser.parse_args()
+    
     stix_to_attack_lookup = lookup.create_stix_to_attack_dict()
     attack_to_name_lookup = lookup.create_attack_to_name_dict()
     domain_to_uuid_lookup = lookup.create_domain_to_uuid_dict()
@@ -56,6 +60,15 @@ def main():
         output_dir = args.output
     else:
         output_dir = 'output/'
+
+    if args.token and args.user and args.email:
+        try:
+            shutil.rmtree(output_dir)
+        except Exception as ex:
+            pass
+        
+        if cti.clone_repo(output_dir) is False:
+            return
 
     for domain in valid_domains:
         try:
@@ -140,17 +153,15 @@ def main():
                     with open(output_dir + '/' + domain + '/' + obj['type'] + '/' + obj['attributes']['id'] + '.json', 'w') as f:
                         f.write(json.dumps(stix, indent=4))
                 
-
     for domain in valid_domains:
         if domain_json[domain]['objects']:
             if args.verbose:
                 print('{0} Writing {1}.json to root output directory'.format(util.timestamp(), domain))
-            with open(output_dir + '/' + domain + '.json', 'w') as f:
+            with open(output_dir + '/' + domain + '/' + domain + '.json', 'w') as f:
                 f.write(json.dumps(domain_json[domain], indent=4))
-            gen_marking_definition(domain)
+            gen_marking_definition(output_dir, domain)
         else:
             shutil.rmtree(output_dir + '/' + domain)
-
 
 if __name__ == "__main__":
     main()
