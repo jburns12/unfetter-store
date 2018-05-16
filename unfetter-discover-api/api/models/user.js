@@ -63,6 +63,9 @@ const UserSchema = mongoose.Schema({
         },
         avatar_url: {
             type: String
+        },
+        token: {
+            type: String
         }
     },
     identity: {
