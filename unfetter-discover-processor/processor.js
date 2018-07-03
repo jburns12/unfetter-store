@@ -147,8 +147,11 @@ function run(stixObjects = []) {
             if (collectionName === 'enterprise-attack') {
                 collectionUuid = '95ecc380-afe9-11e4-9b6c-751b66dd541e';
             }
+            else if (collectionName === 'pre-attack') {
+                collectionUuid = '062767bd-02d2-4b72-84ba-56caef0f8658';
+            }
             else {
-                collectionUuid = '5d2668c0-4e41-4dd6-9d79-bf1ab86fddf1';
+                collectionUuid = '2f669986-b40b-4423-b720-4396ca6a462b';
             }
 
             currFile.push(val);

@@ -27,7 +27,6 @@ const mongoose = require('mongoose');
 const passportConfig = require('./api/config/passport-config');
 
 // ~~~ Middleware ~~~
-
 app.use(bodyParser.json({ limit: '5mb' }));
 app.use(bodyParser.urlencoded({
   extended: true,

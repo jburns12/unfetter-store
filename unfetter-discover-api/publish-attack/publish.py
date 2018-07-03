@@ -8,7 +8,7 @@ import shutil
 
 import simplejson as json
 
-from modules import cti, download, lookup, scrub, util
+from modules import collections, cti, download, lookup, scrub, util
 
 # suppress InsecureRequestWarning: Unverified HTTPS request is being made
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -36,19 +36,19 @@ def gen_marking_definition(output_dir, source):
         if ex.errno != errno.EEXIST:
             raise
 
+    return stix_object
+
 def main():
     parser = argparse.ArgumentParser(description='Convert ATT&CK data to STIX')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
     parser.add_argument('-o', '--output', action='store', help='output directory')
-    parser.add_argument('-t', '--token', action='store', help='GitHub token')
-    parser.add_argument('-u', '--user', action='store', help='Github user')
-    parser.add_argument('-e', '--email', action='store', help='Github email')
 
     args = parser.parse_args()
     
     stix_to_attack_lookup = lookup.create_stix_to_attack_dict()
-    attack_to_name_lookup = lookup.create_attack_to_name_dict()
+    attack_to_md_lookup = lookup.create_attack_to_md_dict()
     domain_to_uuid_lookup = lookup.create_domain_to_uuid_dict()
+    uuid_to_domain_lookup = lookup.create_uuid_to_domain_dict()
 
     # Preserve the order of the first two elements of this list to ensure output accuracy
     endpoints = ['attack-patterns', 'relationships', 'course-of-actions', 'identities', 'intrusion-sets', 'malwares', 'tools']
@@ -61,14 +61,13 @@ def main():
     else:
         output_dir = 'output/'
 
-    if args.token and args.user and args.email:
-        try:
-            shutil.rmtree(output_dir)
-        except Exception as ex:
-            pass
+    try:
+        shutil.rmtree(output_dir)
+    except Exception as ex:
+        pass
         
-        if cti.clone_repo(output_dir) is False:
-            return
+    if cti.clone_repo(output_dir) is False:
+        return
 
     for domain in valid_domains:
         try:
@@ -86,6 +85,9 @@ def main():
 
     # Create a dictionary of ATT&CK source dictionaries
     domain_json = {}
+    domain_ids = {}
+    div_output = {}
+
     for domain in valid_domains:
         domain_json[domain] = {}
         domain_json[domain]['type'] = 'bundle'
@@ -93,28 +95,32 @@ def main():
         domain_json[domain]['spec_version'] = '2.0'
         domain_json[domain]['objects'] = []
 
-    domain_ids = {}
     for domain in valid_domains:
         domain_ids[domain] = []
 
     for endpoint in endpoints:
+        div_output[endpoint] = download.stix(endpoint=endpoint)
+
+    domain_ids = collections.set_collections(div_output, domain_ids, uuid_to_domain_lookup)
+    for key in domain_ids:
+        domain_ids[key] = list(set(domain_ids[key]))
+    for endpoint in endpoints:
         if args.verbose:
             print('{0} Pulling data from /{1} endpoint'.format(util.timestamp(), endpoint))
         output = download.stix(endpoint=endpoint)
-        
-        for obj in output:
-            for key, value in domain_to_uuid_lookup.items():
-                if value in obj['attributes']['x_mitre_collections']:
-                    domain_ids[key].append(obj['attributes']['id'])
 
-        if (endpoint != 'identities'):
+        if endpoint != 'identities':
             if args.verbose:
                 print('{0} Scrubbing and transforming data'.format(util.timestamp()))
             output = scrub.append_custom_fields(json_blob=output)
             output = scrub.remove_empty_fields(output)
             output = scrub.filter_by_id(json_blob=output, lookup=stix_to_attack_lookup)
-            output = scrub.transform_text(json_blob=output, attack_to_name_lookup=attack_to_name_lookup)
-            
+            output = scrub.transform_text(json_blob=output, attack_to_md_lookup=attack_to_md_lookup)
+        else:
+            if args.verbose:
+                print('{0} Scrubbing and transforming data'.format(util.timestamp()))
+            output = scrub.filter_identity(json_blob=output)
+
         for domain in valid_domains:
             try:
                 if endpoint != 'identities':
@@ -157,9 +163,15 @@ def main():
         if domain_json[domain]['objects']:
             if args.verbose:
                 print('{0} Writing {1}.json to root output directory'.format(util.timestamp(), domain))
+            marking_def = gen_marking_definition(output_dir, domain)
+            domain_json[domain]['objects'].append(marking_def)
             with open(output_dir + '/' + domain + '/' + domain + '.json', 'w') as f:
                 f.write(json.dumps(domain_json[domain], indent=4))
-            gen_marking_definition(output_dir, domain)
+            for endpoint in endpoints:
+                if endpoint == 'identities':
+                    endpoint = 'identitys'
+                if not os.listdir(output_dir + '/' + domain + '/' + endpoint[:-1]):
+                    os.rmdir(output_dir + domain + '/' + endpoint[:-1])
         else:
             shutil.rmtree(output_dir + '/' + domain)
 
