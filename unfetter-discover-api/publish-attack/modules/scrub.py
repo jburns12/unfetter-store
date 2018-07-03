@@ -3,36 +3,18 @@ from modules import download, lookup
 
 def append_custom_fields(json_blob):
     """Append x_mitre custom fields to Description."""
-    try:
-        for obj in json_blob:
-            if (obj['attributes']['description']):
-                attributes = ['x_mitre_detection', 'x_mitre_platforms',
-                 'x_mitre_data_sources', 'x_mitre_effective_permissions',
-                'x_mitre_defense_bypassed', 'x_mitre_permissions_required',
-                'x_mitre_system_requirements', 'x_mitre_remote_support',
-                'x_mitre_network_requirements', 'x_mitre_contributors',
-                'x_mitre_aliases', 'x_mitre_collections']
-
-                for attribute in attributes:
-                    try:
-                        if (obj['attributes'][attribute]):
-                            if (attribute == 'x_mitre_collections'):
-                                del obj['attributes'][attribute]
-                    except KeyError as ex:
-                        pass 
-
-    except KeyError as ex:
-        pass
+    for obj in json_blob:
+        if 'x_mitre_collections' in obj['attributes']:
+            del obj['attributes']['x_mitre_collections']
 
     return json_blob
 
 def filter_identity(json_blob):
     for obj in json_blob:
-        obj = obj['attributes']
-        if obj['sectors']:
-            del obj['sectors']
-        if obj['x_mitre_collections']:
-            del obj['x_mitre_collections']
+        if 'sectors' in obj['attributes']:
+            del obj['attributes']['sectors']
+        if 'x_mitre_collections' in obj['attributes']:
+            del obj['attributes']['x_mitre_collections']
 
     return json_blob
 
@@ -57,15 +39,42 @@ def filter_by_id(json_blob, lookup):
 def remove_empty_fields(json_blob):
     """Remove dictionary keys with values of "" or []."""
     for obj in json_blob:
-        for key, value in obj.items():
-            if value:
-                # Loop through internal dictionaries.
-                if type(value) is dict:
-                    for k, v in list(value.items()):
-                        if not v:
-                            del obj[key][k]
+        high_level_keys_to_delete = []
+        for key, value in obj['attributes'].items():
+            if key == 'external_references':
+                if len(value) == 0:
+                    high_level_keys_to_delete.append(key)
+                for i in range(len(value)):
+                    keys_to_delete = []
+                    for ext_k, ext_v in obj['attributes'][key][i].items():
+                        if type(ext_v) is not list:
+                            if ext_v == '':
+                                keys_to_delete.append(ext_k)
+                        else:
+                            if len(ext_v) == 0:
+                                keys_to_delete.append(ext_k)
+                    for key_to_delete in keys_to_delete:
+                        del obj['attributes'][key][i][key_to_delete]
+            # Loop through internal dictionaries.
+            elif type(value) is dict:
+                keys_to_delete = []
+                for k, v in value.items():
+                    if type(v) is not list:
+                        if v == '':
+                            keys_to_delete.append(k)
+                    else:
+                        if len(v) == 0:
+                            keys_to_delete.append(k)
+                for key_to_delete in keys_to_delete:
+                    del obj['attributes'][key][key_to_delete]
+            elif type(value) is list:
+                if len(value) == 0:
+                    high_level_keys_to_delete.append(key)
             else:
-                del obj[key]
+                if value == '':
+                    high_level_keys_to_delete.append(key)
+        for key_to_delete in high_level_keys_to_delete:
+            del obj['attributes'][key_to_delete]
                 
     return json_blob
 
@@ -74,7 +83,6 @@ def transform_text(json_blob, attack_to_md_lookup):
     tactics = lookup.create_tactics_list()
 
     for obj in json_blob:
-        #try:
         if obj['type'] == 'relationship' and 'description' in obj['attributes']:
             obj['attributes']['description'] = re.sub(' \[\[(Citation:.*?)\]\]', '', obj['attributes']['description'], flags=re.MULTILINE)
             obj['attributes']['description'] = re.sub('\[\[(Citation:.*?)\]\]', '', obj['attributes']['description'], flags=re.MULTILINE)

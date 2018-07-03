@@ -108,7 +108,6 @@ router.get('/github-callback', passport.authenticate('github', { failureRedirect
     // hit unfetter api to update token
     const githubUser = req.user.profile;
     localStorage.setItem('accessToken', req.user.accessToken);
-    console.log(localStorage);
     if (!githubUser) {
         res.json({success: false, message: 'User object is empty'});
     } else {

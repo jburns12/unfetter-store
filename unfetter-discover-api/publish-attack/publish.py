@@ -69,7 +69,17 @@ def main():
     if cti.clone_repo(output_dir) is False:
         return
 
+    readme = {}
     for domain in valid_domains:
+        if os.path.isfile(output_dir + domain + '/README.md'):
+            #try:
+            readme_file = open(output_dir + domain + '/README.md', 'r')
+            readme[domain] = readme_file.read()
+            readme_file.close()
+            #except:
+              #  readme[domain] = None
+        else:
+            readme[domain] = None
         try:
             shutil.rmtree(output_dir + domain)
         except Exception as ex:
@@ -79,6 +89,11 @@ def main():
         except OSError as ex:
             if ex.errno != errno.EEXIST:
                 raise
+        else:
+            if readme[domain] is not None:
+                readme_file = open(output_dir + domain + '/README.md', 'w')
+                readme_file.write(readme[domain])
+                readme_file.close()
 
     if args.verbose:
         print('{0} Output directory: {1}'.format(util.timestamp(), output_dir))
@@ -126,7 +141,7 @@ def main():
                 if endpoint != 'identities':
                     output_path = output_dir + domain + '/' + endpoint[:-1]
                     os.makedirs(output_path)
-                elif endpoint == 'identities':
+                else:
                     output_path = output_dir + domain + '/identity'
                     os.makedirs(output_path)
             except OSError as ex:
@@ -145,10 +160,9 @@ def main():
             attributes = ['type', 'id', 'created_by_ref', 'created', 'modified', 'name', 'description', 'aliases', 'labels', 'kill_chain_phases', 'external_references', 'identity_class', 'object_marking_refs', 'x_mitre_detection', 'x_mitre_detection', 'x_mitre_platforms', 'x_mitre_data_sources', 'x_mitre_effective_permissions', 'x_mitre_defense_bypassed', 'x_mitre_permissions_required', 'x_mitre_system_requirements', 'x_mitre_remote_support','x_mitre_network_requirements', 'x_mitre_contributors','x_mitre_aliases', 'source_ref', 'target_ref']
             stix_object = {}
                 
-            for attribute in attributes:
+            for attribute in obj['attributes']:
                 try:
-                    if (obj['attributes'][attribute]):
-                        stix_object[attribute] = obj['attributes'][attribute]
+                    stix_object[attribute] = obj['attributes'][attribute]
                 except KeyError as ex:
                     pass 
             stix['objects'].append(stix_object)
