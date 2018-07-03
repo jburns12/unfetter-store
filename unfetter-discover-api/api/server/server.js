@@ -14,9 +14,9 @@ const server = spdy.createServer({
 }, app);
 
 server.listen(port);
-server.timeout = 240000;
 server.on('error', onError);
 server.on('listening', onListening);
+server.timeout = 600000;
 
 function onError(error) {
   if (error.syscall !== 'listen') {

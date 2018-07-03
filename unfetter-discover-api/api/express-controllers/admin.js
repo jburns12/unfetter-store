@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-const PythonShell = require('python-shell');
 const userModel = require('../models/user');
 const webAnalyticsModel = require('../models/web-analytics');
 
@@ -14,46 +13,6 @@ router.get('/users-pending-approval', (req, res) => {
             return res.json({ data: { attributes: users } });
         }
     });
-});
-
-router.get('/publish', (req, res) => {
-    if (req.user.github.token) {
-        if (req.user.email) {
-            var emailAddr = req.user.email;
-        }
-        else {
-            var emailAddr = "n/a";
-        }
-        var options = {
-            mode: 'text',
-            pythonPath: '/usr/bin/python3',
-            pythonOptions: ['-u'], // get print results in real-time
-            scriptPath: '/usr/share/unfetter-discover-api/publish-attack',
-            args: ['--output', 'cti/', '--token', req.user.github.token, '--user', req.user.github.userName, '--email', emailAddr]
-        };
-                
-        PythonShell.run('publish.py', options, function (err, results) {
-            if (err) {
-                console.log(err)
-                return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
-            }
-            PythonShell.run('push.py', options, function (err, results) {
-                if (err) {
-                    console.log(err)
-                    if (err.exitCode != 0) {
-                        return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
-                    }
-                }
-                // results is an array consisting of messages collected during execution
-                console.log('results: %j', results);
-                return res.json({ data: { attributes: 'Successfully published!'} });
-            });
-        });
-        
-    }
-    else {
-        return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'Cannot authenticate to GitHub. Please sign in to the ATT&CK Editor and try again.' }] })
-    }
 });
 
 router.get('/organization-leader-applicants', (req, res) => {

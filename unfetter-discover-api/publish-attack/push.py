@@ -10,7 +10,7 @@ def main():
 
     args = parser.parse_args()
 
-    if args.token and args.user and args.email:
+    if args.token and args.user and args.email and args.output:
         if cti.push_repo(args.user, args.email, args.token, args.output) is True:
             print("Successfully published!")
         else:

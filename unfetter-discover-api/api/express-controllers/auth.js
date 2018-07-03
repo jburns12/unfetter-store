@@ -3,6 +3,8 @@ const router = express.Router();
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const GithubStrategy = require('passport-github').Strategy;
+const localStorage = require('localStorage');
+const PythonShell = require('python-shell');
 
 const config = require('../config/config');
 const userModel = require('../models/user');
@@ -45,10 +47,67 @@ router.use(passport.session());
 
 router.get('/github-login', passport.authenticate('github', { scope: ['user:email', 'repo']}));
 
+router.get('/publish', passport.authenticate('jwt', { session: false }), (req, res) => {
+    const gitHubToken = localStorage.getItem('accessToken');
+    if (gitHubToken) {
+        var options = {
+            mode: 'text',
+            pythonPath: '/usr/bin/python3',
+            pythonOptions: ['-u'], // get print results in real-time
+            scriptPath: '/usr/share/unfetter-discover-api/publish-attack',
+            args: ['--output', 'cti/']
+        };
+                    
+        PythonShell.run('publish.py', options, function (err, results) {
+            if (err) {
+                console.log(err)
+                return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
+            }
+            console.log("done");
+            return res.json({ data: { attributes: 'Successfully generated!'} });
+        });
+    }
+    else {
+        return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'Cannot authenticate to GitHub. Please sign in to the Editor and try again.' }] })
+    }
+});
+
+router.get('/push', passport.authenticate('jwt', { session: false }), (req, res) => {
+    const gitHubToken = localStorage.getItem('accessToken');
+    if (gitHubToken) {
+        if (req.user.email) {
+            var emailAddr = req.user.email;
+        }
+        else {
+            var emailAddr = "n/a";
+        }
+        var options = {
+            mode: 'text',
+            pythonPath: '/usr/bin/python3',
+            pythonOptions: ['-u'], // get print results in real-time
+            scriptPath: '/usr/share/unfetter-discover-api/publish-attack',
+            args: ['--output', 'cti/', '--token', gitHubToken, '--user', req.user.github.userName, '--email', emailAddr]
+        };
+        PythonShell.run('push.py', options, function (err, results) {
+            if (err) {
+                if (err.exitCode != 0) {
+                    return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
+                }
+            }
+            // results is an array consisting of messages collected during execution
+            console.log('results: %j', results);
+            return res.json({ data: { attributes: 'Successfully pushed!'} });
+        });
+    }
+    else {
+        return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'Cannot authenticate to GitHub. Please sign in to the Editor and try again.' }] })
+    }
+});
+
 router.get('/github-callback', passport.authenticate('github', { failureRedirect:'/auth/github-login' }), (req, res) => {
     // hit unfetter api to update token
     const githubUser = req.user.profile;
-    const gitHubToken = req.user.accessToken;
+    localStorage.setItem('accessToken', req.user.accessToken);
     if (!githubUser) {
         res.json({success: false, message: 'User object is empty'});
     } else {
@@ -66,7 +125,6 @@ router.get('/github-callback', passport.authenticate('github', { failureRedirect
                 user.github = {};
                 user.github.userName = githubUser.username;
                 user.github.id = githubUser.id;
-                user.github.token = gitHubToken;
                 if (githubUser._json.avatar_url) {
                     user.github.avatar_url = githubUser._json.avatar_url;
                 }
@@ -100,7 +158,6 @@ router.get('/github-callback', passport.authenticate('github', { failureRedirect
             } else {
                 user = result[0].toObject();
                 registered = user.registered;
-                user.github.token = gitHubToken;
                 userModel.findOneAndUpdate({ 'github.id': githubUser.id }, user, { new: true }, (errUpdate, resultUpdate) => {
 
                     const token = jwt.sign(user, config.jwtSecret, {
