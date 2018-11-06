@@ -20,7 +20,7 @@ def create_stix_to_attack_dict():
 def create_attack_to_md_dict():
     """Generate a lookup table of ATT&CK ID -> name."""
     lookup = {}
-    endpoints = ['attack-patterns', 'course-of-actions', 'intrusion-sets', 'malwares', 'tools']
+    endpoints = ['attack-patterns', 'intrusion-sets', 'malwares', 'tools']
     domain_list = ['mitre-attack', 'mitre-pre-attack', 'mitre-mobile-attack']
 
     for endpoint in endpoints:
@@ -34,17 +34,19 @@ def create_attack_to_md_dict():
 
 def create_tactics_list():
     tactics = []
-    json_blob = requests.get('https://attackgui.mitre.org/api/config', verify=False).json()['data']
+    domains = ['pre_attack_tactics', 'mobile_tactics', 'enterprise_tactics']
+    json_blob = requests.get('https://attackgui.mitre.org/api/config?filter={"configKey": "tactics"}', verify=False).json()['data']
     for obj in json_blob:
-        for config_obj in obj['attributes']['configValue']:
-            if type(config_obj) is str:
-                pass
-            else:
-                try:
-                    if config_obj['tactic'] not in tactics:
-                        tactics.append(titlecase(config_obj['tactic'].replace('-', ' ')))
-                except KeyError as ex:
+        for domain in domains:
+            for config_obj in obj['attributes']['configValue'][domain]['tactics']:
+                if type(config_obj) is str:
                     pass
+                else:
+                    try:
+                        if config_obj['tactic'] not in tactics:
+                            tactics.append(titlecase(config_obj['tactic'].replace('-', ' ')))
+                    except KeyError as ex:
+                        pass
     return tactics
 
 def create_domain_to_uuid_dict():

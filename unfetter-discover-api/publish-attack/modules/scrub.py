@@ -103,7 +103,7 @@ def transform_text(json_blob, attack_to_md_lookup):
         if 'x_mitre_detection' in obj['attributes']:
             attack_ids_detection = re.findall('\{\{LinkById\|(.*?)\}\}', obj['attributes']['x_mitre_detection'])
             for attack_id_detection in attack_ids_detection:
-                obj['attributes']['x_mitre_detection'] = obj['attributes']['x_mitre_detection'].replace('{{LinkById|' + attack_id_detection + '}}', attack_to_md_lookup[attack_id])
+                obj['attributes']['x_mitre_detection'] = obj['attributes']['x_mitre_detection'].replace('{{LinkById|' + attack_id_detection + '}}', attack_to_md_lookup[attack_id_detection])
         if 'external_references' in obj['attributes']:
             for idx, val in enumerate(obj['attributes']['external_references']):
                 if 'description' in obj['attributes']['external_references'][idx]:
