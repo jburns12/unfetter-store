@@ -16,16 +16,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def gen_marking_definition(output_dir, source):
     try:
         os.makedirs(output_dir + source + '/marking-definition')
-        with open(output_dir + source + '/marking-definition/marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168.json', 'w') as f:
+        with open(output_dir + source + '/marking-definition/marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168.json', 'w') as f:
            stix = {}
            stix['type'] = 'bundle'
-           stix['id'] = 'marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168'
+           stix['id'] = 'marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168'
            stix['spec_version'] = '2.0'
            stix['objects'] = []
            stix_object = {}
            stix_object['type'] = 'marking-definition'
-           stix_object['id'] = 'marking-definition-fa42a846-8d90-4e51-bc29-71d5b4802168'
-           stix_object['created_by_ref'] = 'identity--c78cb6e5-0c4b-8297-d1b8b55e40b5'
+           stix_object['id'] = 'marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168'
+           stix_object['created_by_ref'] = 'identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5'
            stix_object['created'] = '2017-06-01T00:00:00Z'
            stix_object['definition_type'] = 'statement'
            stix_object['definition'] = {}

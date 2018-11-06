@@ -18,4 +18,7 @@ def stix(endpoint):
         a valid API endpoint""".format(endpoint))
         sys.exit(1)
 
-    return res.json()['data']
+    blob = res.json()['data']
+    if endpoint != 'identities' and endpoint != 'relationships':
+        blob = sorted(blob, key=lambda k: k['attributes']['name'])
+    return blob
