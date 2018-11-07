@@ -192,7 +192,6 @@ CourseOfActionsJsonApiSingleItem:
 CourseOfAction:
   $ref: ./course_of_actions/course_of_action.yaml
 
-
 IdentityJsonApi:
   $ref: ./identities/identity_json_api.yaml
 IdentitiesJsonApi:
@@ -333,6 +332,28 @@ Tool:
   $ref: ./tools/tool.yaml  
 
 # ~~~ Unfetter-STIX ~~~
+
+XMitreMatrixJsonApi:
+  $ref: ./x_mitre_matrices/x_mitre_matrix_json_api.yaml
+XMitreMatricesJsonApi:
+  $ref: ./x_mitre_matrices/x_mitre_matrices_json_api.yaml
+XMitreMatrixCreateUpdate:
+  $ref: ./x_mitre_matrices/x_mitre_matrix_create_update.yaml
+XMitreMatricesJsonApiSingleItem:
+  $ref: ./x_mitre_matrices/x_mitre_matrices_json_api_single_item.yaml
+XMitreMatrix:
+  $ref: ./x_mitre_matrices/x_mitre_matrix.yaml
+
+XMitreTacticJsonApi:
+  $ref: ./x_mitre_tactics/x_mitre_tactic_json_api.yaml
+XMitreTacticsJsonApi:
+  $ref: ./x_mitre_tactics/x_mitre_tactics_json_api.yaml
+XMitreTacticCreateUpdate:
+  $ref: ./x_mitre_tactics/x_mitre_tactic_create_update.yaml
+XMitreTacticsJsonApiSingleItem:
+  $ref: ./x_mitre_tactics/x_mitre_tactics_json_api_single_item.yaml
+XMitreTactic:
+  $ref: ./x_mitre_tactics/x_mitre_tactic.yaml
 
 XUnfetterSensorJsonApi:
   $ref: ./x_unfetter_sensors/x_unfetter_sensor_json_api.yaml

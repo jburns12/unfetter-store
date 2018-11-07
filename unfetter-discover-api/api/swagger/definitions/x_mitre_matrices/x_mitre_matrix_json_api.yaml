@@ -1,0 +1,11 @@
+  type: object
+  properties:
+    id: 
+      type: string
+    type:
+      type: string
+      example: "x-mitre-matrix"
+    attributes:
+      $ref: "#/definitions/XMitreMatrix"
+    links:
+        $ref: "#/definitions/Links"

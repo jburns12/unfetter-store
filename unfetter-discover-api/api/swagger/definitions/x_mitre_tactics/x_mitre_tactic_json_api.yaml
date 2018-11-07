@@ -1,0 +1,11 @@
+  type: object
+  properties:
+    id: 
+      type: string
+    type:
+      type: string
+      example: "x-mitre-tactic"
+    attributes:
+      $ref: "#/definitions/XMitreTactic"
+    links:
+        $ref: "#/definitions/Links"

@@ -72,6 +72,16 @@
 /tools/{id}:
   $ref: ./tools/tool_by_id.yaml
 
+/x-mitre-matrices:
+  $ref: ./x-mitre-matrices/x-mitre-matrices.yaml
+/x-mitre-matrices/{id}:
+  $ref: ./x-mitre-matrices/x-mitre-matrix_by_id.yaml
+
+/x-mitre-tactics:
+  $ref: ./x-mitre-tactics/x-mitre-tactics.yaml
+/x-mitre-tactics/{id}:
+  $ref: ./x-mitre-tactics/x-mitre-tactic_by_id.yaml
+
 /multiples:
   $ref: ./multiples/multiples.yaml
 /multiples/{id}/comment:

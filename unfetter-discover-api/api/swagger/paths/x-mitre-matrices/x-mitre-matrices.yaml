@@ -1,0 +1,82 @@
+x-swagger-router-controller: x_mitre_matrices
+get:
+  tags:
+  - STIX
+  - STIX-MITRE Matrices
+  description: Find all instances of the model matched by filter from the data source.
+  operationId: get
+  produces:
+  - application/vnd.api+json
+  parameters:
+    - name: filter
+      in: query
+      description: 'Ex: { "name": "AppInit DLLs" }'
+      required: false
+      type: string
+    - name: sort
+      in: query
+      description: 'Ex: { "name": "1" } or { "name": "-1"}'
+      required: false
+      type: string
+    - name: limit
+      in: query
+      description: 'Ex: 5'
+      required: false
+      type: number
+    - name: skip
+      in: query
+      description: 'Ex: 10'
+      required: false
+      type: number
+    - name: extendedproperties
+      in: query
+      type: boolean
+      description: boolean to include extended stix properties
+    - name: metaproperties
+      in: query
+      type: boolean
+      description: boolean to include extended meta properties
+    - name: previousversions
+      in: query
+      type: boolean
+      description: boolean to include previous versions
+    - name: project
+      in: query
+      description: 'Ex: { "name": 1 } or { "name": 0}'
+      required: false
+      type: string
+  responses:
+    "200":
+      description: Success
+      schema:
+        $ref: "#/definitions/XMitreMatricesJsonApi"
+    default:
+      description: Error
+      schema:
+        $ref: "#/definitions/ErrorJsonApi"
+post:
+  tags:
+  - STIX
+  - STIX-MITRE Matrices
+  description: Create a new instance of the model and persist it into the data source.
+  operationId: add
+  produces:
+  - application/vnd.api+json
+  consumes:
+  - application/json
+  parameters:
+    - name: data
+      in: body
+      description: Model instance data
+      required: true
+      schema:
+        $ref: "#/definitions/XMitreMatrixCreateUpdate"
+  responses:
+    "201":
+      description: Created
+      schema:
+        $ref: "#/definitions/XMitreMatricesJsonApi"
+    default:
+      description: Error
+      schema:
+        $ref: "#/definitions/ErrorJsonApi"
