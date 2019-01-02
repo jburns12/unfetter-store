@@ -137,6 +137,7 @@ function getMitreData(domain) {
 function run(stixObjects = []) {
     // STIX files
     if (argv['stix'] !== undefined) {
+        let extRefs = [];
         console.log('Processing the following STIX files: ', argv.stix);
         for (let val of argv.stix) {
             let currFile = [];
@@ -163,6 +164,13 @@ function run(stixObjects = []) {
                     retVal._id = stix.id;
                     retVal.stix = stix;
                     retVal.stix.x_mitre_collections = [collectionUuid];
+                    if ("external_references" in retVal.stix) {
+                        for (let obj of retVal.stix.external_references) {
+                            if (obj.description !== undefined && !obj.description.includes('(Citation: ')) {
+                                extRefs.push(obj);
+                            }
+                        }
+                    }
                     return retVal;
                 })
                 .concat(stixObjects);
@@ -193,6 +201,17 @@ function run(stixObjects = []) {
                 });
             }
             promises.push(stixModel.create(stixToUpload));
+        }
+        if (extRefs.length > 0){
+            let duplicates = []
+            let uniqueRefs = extRefs.filter((citation, index, self) => self.findIndex((t) => (t.source_name === citation.source_name && t.description === citation.description && t.url === citation.url)) === index);
+
+            let refConfig = {};
+            refConfig["_id"] = "81342cfc-166e-41a0-af79-d37e7abc67ad";
+            refConfig["configKey"] = "references";
+            refConfig["configValue"] = uniqueRefs;
+            refConfig["configGroups"] = ["stixConfig"];
+            promises.push(configModel.create(refConfig));
         }
     } else if (stixObjects.length > 0) {
         promises.push(stixModel.create(stixObjects));
