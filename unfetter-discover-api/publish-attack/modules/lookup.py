@@ -9,7 +9,7 @@ def create_stix_to_attack_dict():
     domain_list = ['mitre-attack', 'mitre-pre-attack', 'mitre-mobile-attack']
     
     for endpoint in endpoints:
-        json_blob = download.stix(endpoint)
+        json_blob = download.stix(endpoint, endpoints)
         for obj in json_blob:
             for ext_ref in obj['attributes']['external_references']:
                 if 'source_name' in ext_ref and 'external_id' in ext_ref and ext_ref['source_name'] in domain_list:
@@ -24,7 +24,7 @@ def create_attack_to_md_dict():
     domain_list = ['mitre-attack', 'mitre-pre-attack', 'mitre-mobile-attack']
 
     for endpoint in endpoints:
-        json_blob = download.stix(endpoint)
+        json_blob = download.stix(endpoint, endpoints)
         for obj in json_blob:
             for ext_ref in obj['attributes']['external_references']:
                 if 'source_name' in ext_ref and 'external_id' in ext_ref and ext_ref['source_name'] in domain_list:

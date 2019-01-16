@@ -6,8 +6,9 @@ def clone_repo(output_dir):
     try:
         Repo.clone_from("https://github.com/jburns12/cti_test.git", output_dir)
         success = True
-    except:
+    except Exception as e:
         success = False
+        print(e.message, e.args)
     
     return success
 

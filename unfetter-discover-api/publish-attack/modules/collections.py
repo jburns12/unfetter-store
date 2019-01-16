@@ -55,4 +55,11 @@ def set_collections(stix_objects, domain_ids, domain_to_uuid_lookup):
         for domain in domain_to_uuid_lookup:
             domain_ids[domain_to_uuid_lookup[domain]].append(identity['id'])
 
+    for matrix in stix_objects['x-mitre-matrices']:
+        for ref in matrix['attributes']['external_references']:
+            if ref['source_name'] == 'mitre-attack':
+                domain_ids[ref['external_id']].append(matrix['id'])
+                for tactic in matrix['attributes']['tactic_refs']:
+                    domain_ids[ref['external_id']].append(tactic)
+
     return domain_ids

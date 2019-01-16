@@ -51,7 +51,7 @@ def main():
     uuid_to_domain_lookup = lookup.create_uuid_to_domain_dict()
 
     # Preserve the order of the first two elements of this list to ensure output accuracy
-    endpoints = ['attack-patterns', 'relationships', 'course-of-actions', 'identities', 'intrusion-sets', 'malwares', 'tools']
+    endpoints = ['attack-patterns', 'relationships', 'course-of-actions', 'identities', 'intrusion-sets', 'malwares', 'tools', 'x-mitre-tactics', 'x-mitre-matrices']
     valid_domains = list(domain_to_uuid_lookup.keys())
 
     if args.output:
@@ -114,7 +114,7 @@ def main():
         domain_ids[domain] = []
 
     for endpoint in endpoints:
-        div_output[endpoint] = download.stix(endpoint=endpoint)
+        div_output[endpoint] = download.stix(endpoint=endpoint, endpoints=endpoints)
 
     domain_ids = collections.set_collections(div_output, domain_ids, uuid_to_domain_lookup)
     for key in domain_ids:
@@ -122,8 +122,7 @@ def main():
     for endpoint in endpoints:
         if args.verbose:
             print('{0} Pulling data from /{1} endpoint'.format(util.timestamp(), endpoint))
-        output = download.stix(endpoint=endpoint)
-
+        output = download.stix(endpoint=endpoint, endpoints=endpoints)
         if endpoint != 'identities':
             if args.verbose:
                 print('{0} Scrubbing and transforming data'.format(util.timestamp()))
@@ -138,8 +137,11 @@ def main():
 
         for domain in valid_domains:
             try:
-                if endpoint != 'identities':
+                if endpoint != 'identities' and endpoint != 'x-mitre-matrices':
                     output_path = output_dir + domain + '/' + endpoint[:-1]
+                    os.makedirs(output_path)
+                elif endpoint == 'x-mitre-matrices':
+                    output_path = output_dir + domain + '/' + 'x-mitre-matrix'
                     os.makedirs(output_path)
                 else:
                     output_path = output_dir + domain + '/identity'
@@ -157,7 +159,6 @@ def main():
             stix['id'] = 'bundle--{0}'.format(uuid.uuid4())
             stix['spec_version'] = '2.0'
             stix['objects'] = []
-            attributes = ['type', 'id', 'created_by_ref', 'created', 'modified', 'name', 'description', 'aliases', 'labels', 'kill_chain_phases', 'external_references', 'identity_class', 'object_marking_refs', 'x_mitre_detection', 'x_mitre_detection', 'x_mitre_platforms', 'x_mitre_data_sources', 'x_mitre_effective_permissions', 'x_mitre_defense_bypassed', 'x_mitre_permissions_required', 'x_mitre_system_requirements', 'x_mitre_remote_support','x_mitre_network_requirements', 'x_mitre_contributors','x_mitre_aliases', 'source_ref', 'target_ref']
             stix_object = {}
                 
             for attribute in obj['attributes']:
@@ -184,8 +185,11 @@ def main():
             for endpoint in endpoints:
                 if endpoint == 'identities':
                     endpoint = 'identitys'
+                if endpoint == 'x-mitre-matrices':
+                    endpoint = 'x-mitre-matrixs'
                 if not os.listdir(output_dir + '/' + domain + '/' + endpoint[:-1]):
                     os.rmdir(output_dir + domain + '/' + endpoint[:-1])
+                    print(endpoint)
         else:
             shutil.rmtree(output_dir + '/' + domain)
 

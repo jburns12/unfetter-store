@@ -1,10 +1,8 @@
 import requests
 import sys
 
-def stix(endpoint):
+def stix(endpoint, endpoints):
     """Get STIX data from https://attackgui.mitre.org."""
-    endpoints = ['attack-patterns', 'course-of-actions', 'identities', 'intrusion-sets', 'malwares', 'relationships', 'tools']
-
     res = None
     if endpoint in endpoints:
         try:
