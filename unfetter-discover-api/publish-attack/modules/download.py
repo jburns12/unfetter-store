@@ -6,13 +6,13 @@ def stix(endpoint, endpoints):
     res = None
     if endpoint in endpoints:
         try:
-            res = requests.get('https://attackgui.mitre.org/api/{0}'
+            res = requests.get('https://localhost/api/{0}'
                                .format(endpoint), verify=False)
         except requests.exceptions.RequestException as ex:
             raise RequestException("""Error connecting to
             https://attackgui.mitre.org/api/{0}""".format(endpoint))
     else:
-        raise ValueError("""https://attackgui.mitre.org/api/{0} is not
+        raise ValueError("""https://localhost/api/{0} is not
         a valid API endpoint""".format(endpoint))
         sys.exit(1)
 

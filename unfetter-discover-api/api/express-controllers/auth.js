@@ -104,6 +104,31 @@ router.get('/push', passport.authenticate('jwt', { session: false }), (req, res)
     }
 });
 
+router.get('/push-dev', passport.authenticate('jwt', { session: false }), (req, res) => {
+    const gitHubToken = localStorage.getItem('accessToken');
+    if (gitHubToken) {
+        var options = {
+            mode: 'text',
+            pythonPath: '/usr/bin/python3',
+            pythonOptions: ['-u'], // get print results in real-time
+            scriptPath: '/usr/share/unfetter-discover-api/publish-attack',
+        };
+        PythonShell.run('pipeline_hook.py', options, function (err, results) {
+            if (err) {
+                if (err.exitCode != 0) {
+                    return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: err }] });
+                }
+            }
+            // results is an array consisting of messages collected during execution
+            console.log('results: %j', results);
+            return res.json({ data: { attributes: 'A pipeline job has been created to publish the dev site at http://attackguidev.mitre.org!'} });
+        });
+    }
+    else {
+        return res.status(400).json({ errors: [{ status: 400, source: '', title: 'Error', code: '', detail: 'Cannot push to GitLab.' }] })
+    }
+});
+
 router.get('/github-callback', passport.authenticate('github', { failureRedirect:'/auth/github-login' }), (req, res) => {
     // hit unfetter api to update token
     const githubUser = req.user.profile;

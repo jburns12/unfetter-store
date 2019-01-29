@@ -28,6 +28,7 @@ RUN apk update && \
 COPY . $WORKING_DIRECTORY
 RUN apk add --update python3
 RUN apk add --update git
+RUN apk add --update openssh-client
 RUN pip3 install -r $WORKING_DIRECTORY/publish-attack/requirements.txt
 RUN touch $WORKING_DIRECTORY/api/swagger/swagger.json && chmod 666 $WORKING_DIRECTORY/api/swagger/swagger.json
 RUN touch $WORKING_DIRECTORY/api/swagger/swagger.yaml && chmod 666 $WORKING_DIRECTORY/api/swagger/swagger.yaml
