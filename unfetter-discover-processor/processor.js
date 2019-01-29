@@ -202,7 +202,7 @@ function run(stixObjects = []) {
             }
             promises.push(stixModel.create(stixToUpload));
         }
-        if (extRefs.length > 0){
+        if (extRefs.length > 0 && argv.config !== undefined){
             let duplicates = []
             let uniqueRefs = extRefs.filter((citation, index, self) => self.findIndex((t) => (t.source_name === citation.source_name && t.description === citation.description && t.url === citation.url)) === index);
 
